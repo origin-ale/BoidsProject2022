@@ -1,3 +1,8 @@
-.gitignore
-.DS_Store
 a.out
+Instructions_typeset/GiacominiInstructions_typeset.log
+Instructions_typeset/GiacominiInstructions_typeset.out
+Instructions_typeset/GiacominiInstructions_typeset.aux
+Instructions_typeset/GiacominiInstructions_typeset.pdf
+Instructions_typeset/GiacominiInstructions_typeset.toc
+Instructions_typeset/GiacominiInstructions_typeset.synctex.gz
+.DS_Store
