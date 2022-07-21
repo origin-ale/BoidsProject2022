@@ -26,14 +26,14 @@ add_executable(BoidsExecutable main.cpp)
 # l'eseguibile dipende dalla libreria sfml-graphics e sue dipendenze
 target_link_libraries(BoidsExecutable PRIVATE sfml-graphics)
 
-# se il testing e' abilitato...
-#   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
-# if (BUILD_TESTING)
+#se il testing e' abilitato...
+  #per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
+if (BUILD_TESTING)
 
-#   # aggiungi l'eseguibile chain.t, da produrre a partire dai sorgenti indicati
-#   add_executable(chain.t chain.test.cpp chain.cpp ppstate.cpp)
-#   target_link_libraries(chain.t PRIVATE sfml-graphics)
-#   # aggiungi l'eseguibile chain.t alla lista dei test, con nome chain.t
-#   add_test(NAME chain.t COMMAND chain.t)
+  # aggiungi l'eseguibile chain.t, da produrre a partire dai sorgenti indicati
+  add_executable(BoidsTest.t main.test.cpp)
+  target_link_libraries(BoidsTest.t PRIVATE sfml-graphics)
+  # aggiungi l'eseguibile chain.t alla lista dei test, con nome chain.t
+  add_test(NAME BoidsTest.t COMMAND BoidsTest.t)
 
-# endif()
+endif()
