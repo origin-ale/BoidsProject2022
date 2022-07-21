@@ -6,3 +6,7 @@ Instructions_typeset/GiacominiInstructions_typeset.pdf
 Instructions_typeset/GiacominiInstructions_typeset.toc
 Instructions_typeset/GiacominiInstructions_typeset.synctex.gz
 .DS_Store
+.vscode
+SFML_Test
+SFML_Test.dSym
+.vscode/tasks.json
