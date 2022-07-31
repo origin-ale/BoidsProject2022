@@ -2,6 +2,7 @@
 #include <iostream>
 #include "boids.hpp"
 #include <cmath>
+#include <vector>
 
 //-----Definitions for Position-----
 
