@@ -16,6 +16,9 @@ struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher th
 constexpr double TIME_STEP = 1./60.; //default time step for evolution (60 fps)
 struct E_InvalidMovementTime{}; //exception thrown for overly long times passed to moveBoid
 
+struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor a is not in the range (0,1). Thrown immediately if invalid a is received in input
+
+
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
 
 class Position { //class to handle object positions
@@ -45,6 +48,7 @@ class Velocity { //class to handle object velocities
 };
 
 bool operator==(Velocity const&, Velocity const&);
+Velocity operator+(Velocity const&, Velocity const&);
 
 //maybe use named constructors to build both in degs and rads
 class Angle{  //class to handle angles both in degrees (SFML) and radians (C++ trig functions)
