@@ -279,8 +279,9 @@ Position Boid::moveBoid(double delta_t){
   double future_x = pos.getX() + vel.getXVel() * delta_t;
   double future_y = pos.getY() + vel.getYVel() * delta_t;
   //only move boid if both future coords are in bounds (TEMP, maybe implement polar coordinates)
-  if(!(isfinite(future_x)) || !(isfinite(future_y)) || future_x * future_x + future_y * future_y > MAX_RADIUS2) setPosition(Position(pos.getX(), pos.getY()));
-  else setPosition(Position(future_x, future_y));
+  if(!(isfinite(future_x)) || !(isfinite(future_y)) || future_x * future_x + future_y * future_y > MAX_RADIUS2) {
+    setPosition(Position(pos.getX(), pos.getY()));
+  } else setPosition(Position(future_x, future_y));
   assert(pos.getX() * pos.getX() + pos.getY() * pos.getY() <= MAX_RADIUS2);
   return pos;
 }
