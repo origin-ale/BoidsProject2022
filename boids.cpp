@@ -172,7 +172,7 @@ Position Boid::moveBoid(double delta_t){
   return pos;
 }
 
-void Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
   for (int j = 1; j <= boids.size(); ++j) {
     Position pj(boids[j].getPosition());
     double dij{ sqrt(pos.getX()*pos.getX() + pos.getY()*pos.getY()) - sqrt(pj.getX()*pj.getX() + pj.getY()*pj.getY()) };

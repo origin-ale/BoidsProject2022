@@ -88,11 +88,10 @@ class Boid {  // each boid is one of these
   Angle getAngle() const;  //returns angle of boid
 
   Position moveBoid(double);  //moves boid by a step in time
-  void updateVelocity(std::vector<Boid> const, Position const&, double, double, double, double, double);  //applies flight rules to boid
+  Velocity updateVelocity(std::vector<Boid> const, Position const&, double, double, double, double, double);  //applies flight rules to boid
 
   Position setPosition(Position const&);
   Velocity setVelocity(Velocity const&);
   Angle setAngle(Angle const&);
 };
-
 #endif
