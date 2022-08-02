@@ -157,41 +157,35 @@ Angle Boid::setAngle(Angle const& newagl){
 }
 
 
-
-
-std::vector<Boid> boids;
-int n_boids;   //number of boids, to enter in input
-
-
 Position Boid::moveBoid(double delta_t){
   if(!(isfinite(delta_t))) throw E_InvalidMovementTime{};
 
-  for (int i = 1; i <= n_boids; ++i) {    
-  boids.push_back({});   
-  }
-  assert(boids.size() == n_boids);
+  double future_x = pos.getX() + vel.getXVel() * delta_t;
+  double future_y = pos.getY() + vel.getYVel() * delta_t;
+  //only move boid if both future coords are in bounds (TEMP, maybe implement polar coordinates)
+  if(!(isfinite(future_x)) || 
+     !(isfinite(future_y)) || 
+      future_x * future_x + future_y * future_y > MAX_RADIUS2
+    ) setPosition(Position(pos.getX(), pos.getY())); //implement "bouncing" mechanic (poi ti spiego)
+  else setPosition(Position(future_x, future_y));
+  assert(pos.getX() * pos.getX() + pos.getY() * pos.getY() <= MAX_RADIUS2);
+  return pos;
+}
 
-
-  //--------------------------------flight rules for i-th boid-----------------------------
-
-  double d;    //maximum distance for close boids, da inizializzare a boh
-  for (int j = 1; j <= n_boids; ++j) {
+void Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+  for (int j = 1; j <= boids.size(); ++j) {
     Position pj(boids[j].getPosition());
     double dij{ sqrt(pos.getX()*pos.getX() + pos.getY()*pos.getY()) - sqrt(pj.getX()*pj.getX() + pj.getY()*pj.getY()) };
+    //^ implement this with operator- on positions ^
     Velocity vj(boids[j].getVelocity());
 
-    while (dij*dij < d*d) {    //only apply flight rules to close boids
-
-
-      //-----------------------------separation velocity------------------------------------------
-
-
-      /*
-      double ds;   //separation distance, da inizializzare a boh
+    if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
+      /* OLD SEPARATION RULE
+      double separation_distance;   //separation distance, da inizializzare a boh
       for (int j = 1; j <= n_boids; ++j) {
         Position pj(boids[j].getPosition());
         double dij{ sqrt(pos.getX()*pos.getX() + pos.getY()*pos.getY()) - sqrt(pj.getX()*pj.getX() + pj.getY()*pj.getY()) };
-        if(dij*dij < ds*ds) {    //only add separation component if the distance between two boids is < ds
+        if(dij < separation_distance) {    //only add separation component if the distance between two boids is < separation_distance
       
         double s;  //separation factor, to enter in input
         double sumx;
@@ -207,80 +201,43 @@ Position Boid::moveBoid(double delta_t){
         setVelocity(vel + Velocity(v1x, v1y));     //added separation component v1
         }
       } */
-
-
-        double ds;   //separation distance, da inizializzare a boh
-
-
-        while (dij*dij < ds*ds) {    //only add separation component if the distance between two boids is < ds
-            double s;  //separation factor, to enter in input
+      //-----------------------------separation velocity------------------------------------------
+        while (dij*dij < sep_radius*sep_radius) {    //only add separation component if the distance between two boids is < separation_distance
 
             double sumx;
             sumx += ( pos.getX() - pj.getX() ); 
-            double v1x = -s * sumx;
+            double v1x = -sep_factor * sumx;
 
             double sumy;
             sumy += ( pos.getY() - pj.getY() );   
-            double v1y = -s * sumy;
+            double v1y = -sep_factor * sumy;
 
             setVelocity(vel + Velocity(v1x, v1y));     //added separation component v1
         }
 
-
-
-
-
-
       //-----------------------------------alignment velocity--------------------------------------------
 
-      double a; //alignment factor, to enter in input
-      if (a<0 || a>=1) throw E_InvalidAlignmentFactor{};
+      if (align_factor<0 || align_factor>=1) throw E_InvalidAlignmentFactor{};
 
       double meanx;
-        meanx += (1/(n_boids-1)) * vj.getXVel();
-        meanx = meanx - (1/(n_boids-1))*vel.getXVel();
-      double v2x = a * (meanx - vel.getXVel());
+        meanx += (1/(boids.size()-1)) * vj.getXVel();
+        meanx = meanx - (1/(boids.size()-1))*vel.getXVel();
+      double v2x = align_factor * (meanx - vel.getXVel());
 
       double meany;
-          meany += (1/(n_boids-1)) * vj.getYVel();
-          meany = meany - (1/(n_boids-1))*vel.getYVel();
-      double v2y = a * (meany - vel.getYVel());
+          meany += (1/(boids.size()-1)) * vj.getYVel();
+          meany = meany - (1/(boids.size()-1))*vel.getYVel();
+      double v2y = align_factor * (meany - vel.getYVel());
 
       setVelocity(vel + Velocity(v2x, v2y));       //added alignment component v2    
 
-
-
-
       //-----------------------------------cohesion velocity--------------------------------------------
 
-      double c; //cohesion factor, to enter in input
-      double xc{0.};
-      double yc{0.};
-      Position cpos(xc, yc);  //centre of mass coords, scriverle così è completamente inutile boh
-
-        xc += pj.getX();
-        yc += pj.getY();
-        xc = (1/(n_boids-1)) * (xc - pos.getX());
-        yc = (1/(n_boids-1)) * (yc - pos.getY());
-
-      double v3x = c * (cpos.getX() - pos.getX());  
-      double v3y = c * (cpos.getY() - pos.getY());
+      double v3x = cohes_factor * (centermass_pos.getX() - pos.getX());  
+      double v3y = cohes_factor * (centermass_pos.getY() - pos.getY());
 
       setVelocity(vel + Velocity(v3x, v3y));   //added cohesion component v3
 
       }
-
-  } //end for loop
-
-
-
-  //-------------------------------------evolution-------------------------------------------
-
-  double future_x = pos.getX() + vel.getXVel() * delta_t;
-  double future_y = pos.getY() + vel.getYVel() * delta_t;
-  //only move boid if both future coords are in bounds (TEMP, maybe implement polar coordinates)
-  if(!(isfinite(future_x)) || !(isfinite(future_y)) || future_x * future_x + future_y * future_y > MAX_RADIUS2) setPosition(Position(pos.getX(), pos.getY()));
-  else setPosition(Position(future_x, future_y));
-  assert(pos.getX() * pos.getX() + pos.getY() * pos.getY() <= MAX_RADIUS2);
-  return pos;
+  }
 }

@@ -1,6 +1,8 @@
 #ifndef BOIDS_HPP
 #define BOIDS_HPP
 
+#include <vector>
+
 //----------CONSTANTS AND EXCEPTIONS----------
 
 constexpr double pi = 3.141592653589793238462643383279; //numbers library is C++20 onwards
@@ -86,6 +88,7 @@ class Boid {  // each boid is one of these
   Angle getAngle() const;  //returns angle of boid
 
   Position moveBoid(double);  //moves boid by a step in time
+  void updateVelocity(std::vector<Boid> const, Position const&, double, double, double, double, double);  //applies flight rules to boid
 
   Position setPosition(Position const&);
   Velocity setVelocity(Velocity const&);
