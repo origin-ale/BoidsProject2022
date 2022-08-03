@@ -27,6 +27,10 @@ bool operator==(Position const& lhs, Position const& rhs){
   return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
 }
 
+double operator-(Position const& lhs, Position const& rhs){
+  return sqrt(lhs.getX()*lhs.getX() + lhs.getY()*lhs.getY()) - sqrt(rhs.getX()*rhs.getX() + rhs.getY()*rhs.getY());
+}
+
 //-----Definitions for Velocity-----
 
 Velocity::Velocity(double x_vel, double y_vel):vx{x_vel}, vy{y_vel} { // Velocity constructor
@@ -174,10 +178,9 @@ Position Boid::moveBoid(double delta_t){
 
 Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
   for (int j = 1; j <= boids.size(); ++j) {
-    Position pj(boids[j].getPosition());
-    double dij{ sqrt(pos.getX()*pos.getX() + pos.getY()*pos.getY()) - sqrt(pj.getX()*pj.getX() + pj.getY()*pj.getY()) };
-    //^ implement this with operator- on positions ^
-    Velocity vj(boids[j].getVelocity());
+    Position pj{boids[j].getPosition()};
+    double dij{pos - pj};
+    Velocity vj{boids[j].getVelocity()};
 
     if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
       /* OLD SEPARATION RULE

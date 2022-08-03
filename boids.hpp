@@ -36,6 +36,7 @@ class Position { //class to handle object positions
 };
 
 bool operator==(Position const&, Position const&);
+double operator-(Position const&, Position const&);
 
 class Velocity { //class to handle object velocities
   double vx=0.; //x velocity of object
