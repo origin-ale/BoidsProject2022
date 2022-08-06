@@ -7,7 +7,7 @@
 //-----Definitions for Position-----
 
 Position::Position(double x_coord, double y_coord):x{x_coord}, y{y_coord} { // Position constructor
-  if(getNorm2() > MAX_RADIUS2 || !(isfinite(getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
+  if(getNorm2() > MAX_RADIUS2 || !(std::isfinite(getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
   assert(getNorm2() <= MAX_RADIUS2); // terminate if somehow still greater
 }
 
@@ -34,7 +34,7 @@ double operator-(Position const& lhs, Position const& rhs){
 //-----Definitions for Velocity-----
 
 Velocity::Velocity(double x_vel, double y_vel):vx{x_vel}, vy{y_vel} { // Velocity constructor
-  if(getNorm2() > MAX_SPEED2 || !(isfinite(getNorm2()))) throw E_SpeedTooHigh{}; // check object isn't over speed limit when spawned. If it is, raise exception.
+  if(getNorm2() > MAX_SPEED2 || !(std::isfinite(getNorm2()))) throw E_SpeedTooHigh{}; // check object isn't over speed limit when spawned. If it is, raise exception.
   assert(getNorm2() <= MAX_SPEED2); // terminate if somehow still greater
 }
 
@@ -70,7 +70,7 @@ Angle::Angle(double raw_angle){ //CHECK THROWING ORDER
   }
   temp = raw_angle; //and set temp to raw_angle
 
-  if(temp < 0.|| temp > 360. || !(isfinite(temp))) throw E_InvalidAngle{}; 
+  if(temp < 0.|| temp > 360. || !(std::isfinite(temp))) throw E_InvalidAngle{}; 
   angle = temp; //remainder of integer division raw_angle / 360
   assert(getDegrees() >= 0. && getDegrees() <= 360.); //class invariants, in terms of getDegrees to facilitate switching internal rep to radiants
 }
@@ -162,13 +162,13 @@ Angle Boid::setAngle(Angle const& newagl){
 
 
 Position Boid::moveBoid(double delta_t){
-  if(!(isfinite(delta_t))) throw E_InvalidMovementTime{};
+  if(!(std::isfinite(delta_t))) throw E_InvalidMovementTime{};
 
   double future_x = pos.getX() + vel.getXVel() * delta_t;
   double future_y = pos.getY() + vel.getYVel() * delta_t;
   //only move boid if both future coords are in bounds (TEMP, maybe implement polar coordinates)
-  if(!(isfinite(future_x)) || 
-     !(isfinite(future_y)) || 
+  if(!(std::isfinite(future_x)) || 
+     !(std::isfinite(future_y)) || 
       future_x * future_x + future_y * future_y > MAX_RADIUS2
     ) setPosition(Position(pos.getX(), pos.getY())); //implement "bouncing" mechanic (poi ti spiego)
   else setPosition(Position(future_x, future_y));
@@ -177,12 +177,14 @@ Position Boid::moveBoid(double delta_t){
 }
 
 Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+  Velocity future_vel(0., 0.);
   for (int j = 1; j <= boids.size(); ++j) {
     Position pj{boids[j].getPosition()};
     double dij{pos - pj};
     Velocity vj{boids[j].getVelocity()};
 
     if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
+
       /* OLD SEPARATION RULE
       double separation_distance;   //separation distance, da inizializzare a boh
       for (int j = 1; j <= n_boids; ++j) {
@@ -204,43 +206,55 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& cen
         setVelocity(vel + Velocity(v1x, v1y));     //added separation component v1
         }
       } */
+
+
       //-----------------------------separation velocity------------------------------------------
-        while (dij*dij < sep_radius*sep_radius) {    //only add separation component if the distance between two boids is < separation_distance
+      
+        Velocity sep_vel{0., 0.};
+        if (dij*dij < sep_radius*sep_radius) {    //only add separation component if the distance between two boids is < separation_distance
 
-            double sumx;
-            sumx += ( pos.getX() - pj.getX() ); 
-            double v1x = -sep_factor * sumx;
+          double sumx{0.};
+          sumx += ( pos.getX() - pj.getX() ); 
+          double v1x = -sep_factor * sumx;
 
-            double sumy;
-            sumy += ( pos.getY() - pj.getY() );   
-            double v1y = -sep_factor * sumy;
+          double sumy{0.};
+          sumy += ( pos.getY() - pj.getY() );   
+          double v1y = -sep_factor * sumy;
 
-            setVelocity(vel + Velocity(v1x, v1y));     //added separation component v1
+          Velocity sep_vel(v1x, v1y);
+
         }
+
 
       //-----------------------------------alignment velocity--------------------------------------------
 
       if (align_factor<0 || align_factor>=1) throw E_InvalidAlignmentFactor{};
 
-      double meanx;
+      double meanx{0.};
         meanx += (1/(boids.size()-1)) * vj.getXVel();
         meanx = meanx - (1/(boids.size()-1))*vel.getXVel();
       double v2x = align_factor * (meanx - vel.getXVel());
 
-      double meany;
+      double meany{0.};
           meany += (1/(boids.size()-1)) * vj.getYVel();
           meany = meany - (1/(boids.size()-1))*vel.getYVel();
       double v2y = align_factor * (meany - vel.getYVel());
 
-      setVelocity(vel + Velocity(v2x, v2y));       //added alignment component v2    
+      Velocity align_vel(v2x, v2y);
+
 
       //-----------------------------------cohesion velocity--------------------------------------------
 
       double v3x = cohes_factor * (centermass_pos.getX() - pos.getX());  
       double v3y = cohes_factor * (centermass_pos.getY() - pos.getY());
 
-      setVelocity(vel + Velocity(v3x, v3y));   //added cohesion component v3
+      Velocity cohes_vel(v3x, v3y);
 
+      setVelocity(sep_vel + align_vel + cohes_vel);
+
+      } else {
+        setVelocity(Velocity(vel.getXVel(), vel.getYVel()));
       }
   }
+  return vel;   //NON SO SE FUNZIONA
 }

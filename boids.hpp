@@ -20,6 +20,7 @@ struct E_InvalidMovementTime{}; //exception thrown for overly long times passed 
 
 struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor a is not in the range (0,1). Thrown immediately if invalid a is received in input
 
+struct E_InvalidNumberOfBoids{}; //exception thrown for negative or null number of boids entered in input
 
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
 
