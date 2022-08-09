@@ -54,8 +54,13 @@ bool operator==(Velocity const& lhs, Velocity const& rhs){
   return lhs.getXVel() == rhs.getXVel() && lhs.getYVel() == rhs.getYVel();
 }
 
-Velocity operator+(Velocity const& lhs, Velocity const& rhs){              //CONTROLLA
-    return Velocity(lhs.getXVel() + rhs.getXVel(), lhs.getYVel() + lhs.getYVel());
+Velocity operator+=(Velocity& lhs, Velocity const& rhs){              
+    return lhs = Velocity(lhs.getXVel() + rhs.getXVel(), lhs.getYVel() + rhs.getYVel());
+}
+
+Velocity operator+(Velocity const& lhs, Velocity const& rhs){ 
+    Velocity temp = lhs;             
+    return temp += rhs;
 }
 
 //-----Definitions for Angle-----
@@ -176,21 +181,72 @@ Position Boid::moveBoid(double delta_t){
   return pos;
 }
 
-Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& centermass_pos, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
-  Velocity future_vel(0., 0.);
-  for (int j = 1; j <= boids.size(); ++j) {
+
+Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+  
+  if (align_factor<0 || align_factor>=1) throw E_InvalidAlignmentFactor{};
+
+  //initialization of component wise sums of members of nearby boids OTHER THAN SELF
+  double sum_pos_sep_x{0.}; 
+  double sum_pos_sep_y{0.}; 
+  int nboids_in_sep; //used in separation
+
+  double sum_vel_x{0.};
+  double sum_vel_y{0.}; //used in alignment
+
+  double sum_pos_center_x{0.};
+  double sum_pos_center_y{0.}; //used in cohesion
+
+  for (int j = 1; j <= boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
+    
+    //initialization of auxiliary variables
     Position pj{boids[j].getPosition()};
-    double dij{pos - pj};
+    double dij{pos - pj}; //maybe redo this, not very clear
     Velocity vj{boids[j].getVelocity()};
 
     if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
+
+      if (dij < sep_radius) {    //only add separation components if the distance between two boids is < sep_radius
+        sum_pos_sep_x += pj.getX();
+        sum_pos_sep_y += pj.getY();
+        ++nboids_in_sep;
+      }
+
+      sum_vel_x += vj.getXVel();
+      sum_vel_y += vj.getYVel(); 
+
+      sum_pos_center_x += pj.getX();
+      sum_pos_center_y += pj.getY();
+
+      } 
+  }
+
+//calculate velocity components and add (IMPLEMENT WITH DOUBLE*POSITION AND DOUBLE*VELOCITY OPERATORS)
+double sep_vel_x = - sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
+double sep_vel_y = - sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
+Velocity sep_vel{sep_vel_x, sep_vel_y};
+
+double align_vel_x = align_factor * ((1/(boids.size()-1)) * sum_vel_x - vel.getXVel());
+double align_vel_y = align_factor * ((1/(boids.size()-1)) * sum_vel_y - vel.getYVel());
+Velocity align_vel{align_vel_x,align_vel_y};
+
+double near_centermass_x = sum_pos_center_x / (boids.size()-1);
+double near_centermass_y = sum_pos_center_y / (boids.size()-1);
+double cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
+double cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
+Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
+
+vel += (sep_vel + align_vel + cohes_vel);
+
+return vel;
+}
 
       /* OLD SEPARATION RULE
       double separation_distance;   //separation distance, da inizializzare a boh
       for (int j = 1; j <= n_boids; ++j) {
         Position pj(boids[j].getPosition());
         double dij{ sqrt(pos.getX()*pos.getX() + pos.getY()*pos.getY()) - sqrt(pj.getX()*pj.getX() + pj.getY()*pj.getY()) };
-        if(dij < separation_distance) {    //only add separation component if the distance between two boids is < separation_distance
+        if(dij < separation_distance) {    //only add separation component if the distance between two boids is < sep_radius
       
         double s;  //separation factor, to enter in input
         double sumx;
@@ -206,55 +262,3 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, Position const& cen
         setVelocity(vel + Velocity(v1x, v1y));     //added separation component v1
         }
       } */
-
-
-      //-----------------------------separation velocity------------------------------------------
-      
-        Velocity sep_vel{0., 0.};
-        if (dij*dij < sep_radius*sep_radius) {    //only add separation component if the distance between two boids is < separation_distance
-
-          double sumx{0.};
-          sumx += ( pos.getX() - pj.getX() ); 
-          double v1x = -sep_factor * sumx;
-
-          double sumy{0.};
-          sumy += ( pos.getY() - pj.getY() );   
-          double v1y = -sep_factor * sumy;
-
-          Velocity sep_vel(v1x, v1y);
-
-        }
-
-
-      //-----------------------------------alignment velocity--------------------------------------------
-
-      if (align_factor<0 || align_factor>=1) throw E_InvalidAlignmentFactor{};
-
-      double meanx{0.};
-        meanx += (1/(boids.size()-1)) * vj.getXVel();
-        meanx = meanx - (1/(boids.size()-1))*vel.getXVel();
-      double v2x = align_factor * (meanx - vel.getXVel());
-
-      double meany{0.};
-          meany += (1/(boids.size()-1)) * vj.getYVel();
-          meany = meany - (1/(boids.size()-1))*vel.getYVel();
-      double v2y = align_factor * (meany - vel.getYVel());
-
-      Velocity align_vel(v2x, v2y);
-
-
-      //-----------------------------------cohesion velocity--------------------------------------------
-
-      double v3x = cohes_factor * (centermass_pos.getX() - pos.getX());  
-      double v3y = cohes_factor * (centermass_pos.getY() - pos.getY());
-
-      Velocity cohes_vel(v3x, v3y);
-
-      setVelocity(sep_vel + align_vel + cohes_vel);
-
-      } else {
-        setVelocity(Velocity(vel.getXVel(), vel.getYVel()));
-      }
-  }
-  return vel;   //NON SO SE FUNZIONA
-}

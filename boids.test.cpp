@@ -4,6 +4,8 @@
 #include<iostream>
 #include<cmath>
 
+//WRITE A BUNCH MORE TESTS
+
 TEST_CASE("Testing position and velocity gets"){ //check a bunch of positions and velocities have correct get functions (getX, getY, getXVel, getYVel, getNorm2)
   Position pos1 = Position(2.,0.);  //second component = 0
   Position pos2 = Position(0.,5.);  //first component = 0
