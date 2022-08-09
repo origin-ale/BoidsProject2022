@@ -10,7 +10,7 @@
 
 constexpr double pi = 3.141592653589793238462643383279; //numbers library is C++20 onwards
 
-constexpr double MAX_RADIUS2 = 25E6;  // maximum value of boid.getPosition().getNorm2()
+constexpr double MAX_RADIUS2 = 562500.;  // maximum value of boid.getPosition().getNorm2()
 struct E_OutOfBounds{}; // exception thrown for radii higher than MAX_RADIUS
 
 constexpr double MAX_SPEED2 = 1E14;  // maximum value of boid.getVelocity().getNorm2()

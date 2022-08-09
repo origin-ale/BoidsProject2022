@@ -230,7 +230,7 @@ double cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
 double cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
-double edge_factor = 1.; //not in input, not supposed to be modified
+double edge_factor = 0.1; //not in input, not supposed to be modified
 double edge_vel_x = edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getCosine();
 double edge_vel_y = edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getSine();
 Velocity edge_vel{edge_vel_x, edge_vel_y};
