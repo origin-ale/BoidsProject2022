@@ -1,16 +1,19 @@
 #ifndef BOIDS_HPP
 #define BOIDS_HPP
 
+#include <cmath>
 #include <vector>
+#include <cassert>
+#include <iostream>
 
 //----------CONSTANTS AND EXCEPTIONS----------
 
 constexpr double pi = 3.141592653589793238462643383279; //numbers library is C++20 onwards
 
-constexpr double MAX_RADIUS2 = 25E6;  // maximum value of boid.getPosition.getNorm2()
+constexpr double MAX_RADIUS2 = 25E6;  // maximum value of boid.getPosition().getNorm2()
 struct E_OutOfBounds{}; // exception thrown for radii higher than MAX_RADIUS
 
-constexpr double MAX_SPEED2 = 40000.;  // maximum value of boid.getVelocity.getNorm2()
+constexpr double MAX_SPEED2 = 4E10;  // maximum value of boid.getVelocity().getNorm2()
 struct E_SpeedTooHigh{};  // exception thrown for speeds higher than MAX_SPEED
 
 struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher than 360 degrees. Not thrown immediately if invalid angle is put into constructor, only if it somehow manages to not get converted into 0 to 360 degs (INFINITY, HUGE_VAL, NaN)
@@ -37,7 +40,7 @@ class Position { //class to handle object positions
 };
 
 bool operator==(Position const&, Position const&);
-double operator-(Position const&, Position const&);
+Position operator-(Position const&, Position const&);
 
 class Velocity { //class to handle object velocities
   double vx=0.; //x velocity of object

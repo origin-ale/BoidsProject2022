@@ -1,15 +1,8 @@
-#include <cassert>
-#include <iostream>
 #include "boids.hpp"
-#include <cmath>
-#include <vector>
 
 //-----Definitions for Position-----
 
-Position::Position(double x_coord, double y_coord):x{x_coord}, y{y_coord} { // Position constructor
-  if(getNorm2() > MAX_RADIUS2 || !(std::isfinite(getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
-  assert(getNorm2() <= MAX_RADIUS2); // terminate if somehow still greater
-}
+Position::Position(double x_coord, double y_coord):x{x_coord}, y{y_coord} {} // Position constructor
 
 double Position::getX() const{
   return x;
@@ -27,8 +20,8 @@ bool operator==(Position const& lhs, Position const& rhs){
   return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
 }
 
-double operator-(Position const& lhs, Position const& rhs){
-  return sqrt(lhs.getX()*lhs.getX() + lhs.getY()*lhs.getY()) - sqrt(rhs.getX()*rhs.getX() + rhs.getY()*rhs.getY());
+Position operator-(Position const& lhs, Position const& rhs){
+  return Position(lhs.getX()-rhs.getX(), lhs.getY()-rhs.getY());
 }
 
 //-----Definitions for Velocity-----
@@ -116,6 +109,7 @@ std::ostream& operator<< (std::ostream& os, const Angle& angle) { //to print by 
 //-----Definitions for Boid-----
 
 Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& spawn_agl): pos{spawn_pos}, vel{spawn_vel}, agl{spawn_agl} { //basic constructor
+  if(pos.getNorm2() > MAX_RADIUS2 || !(std::isfinite(pos.getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
   assert(pos.getNorm2() <= MAX_RADIUS2);  //asserts to check invariants
   assert(agl.getDegrees() <= 360.);
   assert(agl.getDegrees() >= 0.);
@@ -177,7 +171,7 @@ Position Boid::moveBoid(double delta_t){
       future_x * future_x + future_y * future_y > MAX_RADIUS2
     ) setPosition(Position(pos.getX(), pos.getY())); //implement "bouncing" mechanic (poi ti spiego)
   else setPosition(Position(future_x, future_y));
-  assert(pos.getX() * pos.getX() + pos.getY() * pos.getY() <= MAX_RADIUS2);
+  assert(pos.getNorm2() <= MAX_RADIUS2);
   return pos;
 }
 
@@ -189,7 +183,7 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
   //initialization of component wise sums of members of nearby boids OTHER THAN SELF
   double sum_pos_sep_x{0.}; 
   double sum_pos_sep_y{0.}; 
-  int nboids_in_sep; //used in separation
+  int nboids_in_sep{0}; //used in separation
 
   double sum_vel_x{0.};
   double sum_vel_y{0.}; //used in alignment
@@ -197,11 +191,11 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
   double sum_pos_center_x{0.};
   double sum_pos_center_y{0.}; //used in cohesion
 
-  for (int j = 1; j <= boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
+  for (int j = 0; static_cast<unsigned long>(j) <= boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
     
     //initialization of auxiliary variables
     Position pj{boids[j].getPosition()};
-    double dij{pos - pj}; //maybe redo this, not very clear
+    double dij{sqrt((pos - pj).getNorm2())};
     Velocity vj{boids[j].getVelocity()};
 
     if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
@@ -236,7 +230,15 @@ double cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
 double cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
-vel += (sep_vel + align_vel + cohes_vel);
+double edge_factor = 1.; //not in input, not supposed to be modified
+double edge_vel_x = edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getCosine();
+double edge_vel_y = edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getSine();
+Velocity edge_vel{edge_vel_x, edge_vel_y};
+
+vel += (sep_vel + align_vel + cohes_vel + edge_vel);
+
+//update angle
+agl = Angle(360 * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
 
 return vel;
 }
