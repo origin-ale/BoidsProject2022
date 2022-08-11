@@ -1,4 +1,5 @@
 #include "boids.hpp"
+#include "boids.cpp"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include<iostream>
@@ -193,6 +194,7 @@ TEST_CASE("Testing movement"){ //tests move and set functions
     CHECK(movement_boid.getAngle() == Angle(75.));  //check no side effects on angle
     }
 
+
   SUBCASE("Setting members to nonfinites"){
     movement_boid = Boid(); //reset boid to default
     REQUIRE(movement_boid.getPosition() == Position(0.,0.)); //check it was actually reset, if not then terminate test
@@ -252,4 +254,61 @@ TEST_CASE("Testing movement"){ //tests move and set functions
     CHECK_THROWS_AS(movement_boid.moveBoid(HUGE_VAL), E_InvalidMovementTime);
     CHECK_THROWS_AS(movement_boid.moveBoid(NAN), E_InvalidMovementTime);
   }
+}
+
+
+TEST_CASE("Testing velocity update"){
+  double close_radius;
+  double sep_radius;
+  double sep_factor = 0.5;
+  double align_factor = 0.5;
+  double cohes_factor = 0.5;
+  Boid velocity_boid = Boid(); //spawn still boid
+  
+
+  SUBCASE("Testing input exceptions"){
+    double n_boids;
+    std::vector<Boid> boids(n_boids, Boid()); //initialize vector with still boids
+    double neg_sep_factor = -0.5;
+    double neg_align_factor = -0.5;
+    double invalid_align_factor = 1.1;
+    double neg_cohes_factor = -0.5;
+    double neg_n_boids = -10.;
+
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, neg_sep_factor, align_factor, cohes_factor), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, neg_align_factor, cohes_factor), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, invalid_align_factor, cohes_factor), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, neg_cohes_factor), E_InvalidCohesionFactor);
+    CHECK_THROWS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, neg_sep_factor, neg_align_factor, neg_cohes_factor)); //multiple exceptions
+    //MANCA ECCEZIONE SU N_BOIDS
+
+    //passing nonfinites
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, INFINITY, align_factor, cohes_factor), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, INFINITY, cohes_factor), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, INFINITY), E_InvalidCohesionFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, HUGE_VAL, align_factor, cohes_factor), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, HUGE_VAL, cohes_factor), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, HUGE_VAL), E_InvalidCohesionFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, NAN, align_factor, cohes_factor), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, NAN, cohes_factor), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, NAN), E_InvalidCohesionFactor);
+    CHECK_THROWS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, INFINITY, HUGE_VAL, NAN)); //multiple exceptions
+  }
+  
+
+  SUBCASE("Intended behavior"){
+    std::vector<Boid> boids;
+      boids.push_back(velocity_boid);
+      boids.push_back(Boid(Position(1., 0.)));
+      boids.push_back(Boid(Position(0., 1.), Velocity(1., -1.)));
+      boids.push_back(Boid(Position(3., -3.), Velocity(3., 3.))); //non sep boid
+      boids.push_back(Boid(Position(15., 15.), Velocity(1., 1.))); //non close boid
+    close_radius = 10.; //first 3 boids are close to each other
+    sep_radius = 2.; //separation rule applies to first 2 boids
+    velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+
+  //Poi aggiungo i test sul calcolo della velocità
+
+  } 
+ 
 }

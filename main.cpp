@@ -5,7 +5,7 @@ int main()
   std::vector<Boid> boids;
   int iterations = 1E5;
   int n_boids=10; //number of boids, to enter in input
-  if(n_boids<=0) throw E_InvalidNumberOfBoids{};
+  if(n_boids<=0 || !(std::isfinite(n_boids))) throw E_InvalidNumberOfBoids{};
   double close_radius = 100.;
   double sep_radius = 1; 
   double sep_factor = 100.; 

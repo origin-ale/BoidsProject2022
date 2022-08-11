@@ -21,7 +21,9 @@ struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher th
 constexpr double TIME_STEP = 1./60.; //default time step for evolution (60 fps)
 struct E_InvalidMovementTime{}; //exception thrown for overly long times passed to moveBoid
 
-struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor a is not in the range (0,1). Thrown immediately if invalid a is received in input
+struct E_InvalidSeparationFactor{}; //exception thrown when separation factor is negative. Thrown immediately if invalid sep_factor is entered in input
+struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor is not in the range (0,1). Thrown immediately if invalid align_factor is entered in input
+struct E_InvalidCohesionFactor{}; //exception thrown when cohesion factor is negative. Thrown immediately if invalid cohes_factor is entered in input
 
 struct E_InvalidNumberOfBoids{}; //exception thrown for negative or null number of boids entered in input
 
