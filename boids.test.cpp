@@ -258,56 +258,115 @@ TEST_CASE("Testing movement"){ //tests move and set functions
 
 
 TEST_CASE("Testing velocity update"){
-  double close_radius;
-  double sep_radius;
-  double sep_factor = 0.5;
-  double align_factor = 0.5;
-  double cohes_factor = 0.5;
   Boid velocity_boid = Boid(); //spawn still boid
   
 
   SUBCASE("Testing input exceptions"){
-    double n_boids;
     std::vector<Boid> boids(n_boids, Boid()); //initialize vector with still boids
-    double neg_sep_factor = -0.5;
-    double neg_align_factor = -0.5;
-    double invalid_align_factor = 1.1;
-    double neg_cohes_factor = -0.5;
     double neg_n_boids = -10.;
 
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, neg_sep_factor, align_factor, cohes_factor), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, neg_align_factor, cohes_factor), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, invalid_align_factor, cohes_factor), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, neg_cohes_factor), E_InvalidCohesionFactor);
-    CHECK_THROWS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, neg_sep_factor, neg_align_factor, neg_cohes_factor)); //multiple exceptions
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., -0.5, 0.5, 0.5), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, -0.5, 0.5), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, 1.1, 0.5), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, 0.5, -0.5), E_InvalidCohesionFactor);
+    CHECK_THROWS(velocity_boid.updateVelocity(boids, 100., 1., -0.5, -0.5, -0.5)); //multiple exceptions
     //MANCA ECCEZIONE SU N_BOIDS
 
     //passing nonfinites
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, INFINITY, align_factor, cohes_factor), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, INFINITY, cohes_factor), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, INFINITY), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, HUGE_VAL, align_factor, cohes_factor), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, HUGE_VAL, cohes_factor), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, HUGE_VAL), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, NAN, align_factor, cohes_factor), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, NAN, cohes_factor), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, NAN), E_InvalidCohesionFactor);
-    CHECK_THROWS(velocity_boid.updateVelocity(boids, close_radius, sep_radius, INFINITY, HUGE_VAL, NAN)); //multiple exceptions
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., INFINITY, 0.5, 0.5), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, INFINITY, 0.5), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, 0.5, INFINITY), E_InvalidCohesionFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., HUGE_VAL, 0.5, 0.5), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, HUGE_VAL, 0.5), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, 0.5, HUGE_VAL), E_InvalidCohesionFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., NAN, 0.5, 0.5), E_InvalidSeparationFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, NAN, 0.5), E_InvalidAlignmentFactor);
+    CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., 0.5, 0.5, NAN), E_InvalidCohesionFactor);
+    CHECK_THROWS(velocity_boid.updateVelocity(boids, 100., 1., INFINITY, HUGE_VAL, NAN)); //multiple exceptions
   }
   
 
   SUBCASE("Intended behavior"){
-    std::vector<Boid> boids;
-      boids.push_back(velocity_boid);
-      boids.push_back(Boid(Position(1., 0.)));
-      boids.push_back(Boid(Position(0., 1.), Velocity(1., -1.)));
-      boids.push_back(Boid(Position(3., -3.), Velocity(3., 3.))); //non sep boid
-      boids.push_back(Boid(Position(15., 15.), Velocity(1., 1.))); //non close boid
-    close_radius = 10.; //first 3 boids are close to each other
-    sep_radius = 2.; //separation rule applies to first 2 boids
-    velocity_boid.updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+    double n_boids0 = 10;
+    std::vector<Boid> boids0(n_boids0, Boid()); //zero argument constructor vector
+      boids0.push_back(velocity_boid);  
+    velocity_boid.updateVelocity(boids0, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.)); //Approx needed due to very small edge_vel
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(0.));
 
-  //Poi aggiungo i test sul calcolo della velocità
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids1;
+      boids1.push_back(velocity_boid);
+      boids1.push_back(Boid(Position(0.1, 0.1))); //sep boid
+      boids1.push_back(Boid(Position(0.5, -0.5))); //sep boid
+      boids1.push_back(Boid(Position(1., -1.))); //non-sep, close boid
+      boids1.push_back(Boid(Position(75., 75.))); //non-close boid
+    velocity_boid.updateVelocity(boids1, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.7));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-0.55));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(321.84));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids2;
+      boids2.push_back(velocity_boid);
+      boids2.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1))); //sep boid
+      boids2.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.))); //sep boid
+      boids2.push_back(Boid(Position(1., -1.), Velocity(3., -5.))); //non-sep, close boid
+      boids2.push_back(Boid(Position(75., 75.), Velocity(100., 100.))); //non-close boid
+    velocity_boid.updateVelocity(boids2, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids3;
+      boids3.push_back(velocity_boid);
+      boids3.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
+      boids3.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //sep boid
+      boids3.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
+      boids3.push_back(Boid(Position(75., 75.), Velocity(100., 100.), Angle(45.))); //non-close boid
+    velocity_boid.updateVelocity(boids3, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225)); //check other boids' angles do not influence vel
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids4;
+      boids4.push_back(velocity_boid);
+      boids4.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
+      boids4.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //sep boid
+      boids4.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
+    velocity_boid.updateVelocity(boids4, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225)); //check non-close boid does not influence vel
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
+    
+
+    /* NON FUNZIONA
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setPosition(Position(1., 1.)); //test with initial position coords != 0
+    std::vector<Boid> boids5;
+      boids5.push_back(velocity_boid);
+      boids5.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
+      boids5.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //non-sep boid
+      boids5.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
+    velocity_boid.updateVelocity(boids5, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == -0.025);
+    CHECK(velocity_boid.getVelocity().getYVel() == -2.575); */
+
+    
+    
+    
+    //AGGIUNGI A TUTTE IL CHECK DI AGL
+    //TOGLI INCLUDE BOIDS.CPP
+    /*
+      velocity_boid.setPosition(4999.99, 0.); //bring boid near to bounds
+      velocity_boid.setVelocity(0., 0.); //reset velocity
+      velocity_boid.setAngle(0); //reset angle
+
+      CHECK(updateVelocity::edge_vel_x == -0.01000001); //?????????
+      CHECK(updateVelocity::edge_vel_y == 0.);
+      CHECK(updateVelocity::edge_vel == Velocity(-0.01000001, 0.)); */
 
   } 
  
