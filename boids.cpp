@@ -195,14 +195,14 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
   double sum_pos_center_x{0.};
   double sum_pos_center_y{0.}; //used in cohesion
 
-  for (int j = 0; static_cast<unsigned long>(j) <= boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
+  for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
     
     //initialization of auxiliary variables
     Position pj{boids[j].getPosition()};
     double dij{sqrt((pos - pj).getNorm2())};
     Velocity vj{boids[j].getVelocity()};
 
-    if(dij <= close_radius && dij != 0) {    //only apply flight rules to close boids, excluding self
+    if(dij <= close_radius && dij != 0.) {    //only apply flight rules to close boids, excluding self
 
       if (dij < sep_radius) {    //only add separation components if the distance between two boids is < sep_radius
         sum_pos_sep_x += pj.getX();
@@ -226,12 +226,12 @@ double sep_vel_x = - sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
 double sep_vel_y = - sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
 Velocity sep_vel{sep_vel_x, sep_vel_y};
 
-double align_vel_x = align_factor * ((1/(nboids_nearby-1)) * sum_vel_x - vel.getXVel());
-double align_vel_y = align_factor * ((1/(nboids_nearby-1)) * sum_vel_y - vel.getYVel());
+double align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getXVel());
+double align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getYVel());
 Velocity align_vel{align_vel_x,align_vel_y};
 
-double near_centermass_x = sum_pos_center_x / (nboids_nearby-1);
-double near_centermass_y = sum_pos_center_y / (nboids_nearby-1);
+double near_centermass_x = sum_pos_center_x / (nboids_nearby);
+double near_centermass_y = sum_pos_center_y / (nboids_nearby);
 double cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
 double cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};

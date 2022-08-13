@@ -194,7 +194,6 @@ TEST_CASE("Testing movement"){ //tests move and set functions
     CHECK(movement_boid.getAngle() == Angle(75.));  //check no side effects on angle
     }
 
-
   SUBCASE("Setting members to nonfinites"){
     movement_boid = Boid(); //reset boid to default
     REQUIRE(movement_boid.getPosition() == Position(0.,0.)); //check it was actually reset, if not then terminate test
@@ -262,7 +261,7 @@ TEST_CASE("Testing velocity update"){
   
 
   SUBCASE("Testing input exceptions"){
-    std::vector<Boid> boids(n_boids, Boid()); //initialize vector with still boids
+    std::vector<Boid> boids(10, Boid()); //initialize vector with still boids
     double neg_n_boids = -10.;
 
     CHECK_THROWS_AS(velocity_boid.updateVelocity(boids, 100., 1., -0.5, 0.5, 0.5), E_InvalidSeparationFactor);
@@ -287,12 +286,6 @@ TEST_CASE("Testing velocity update"){
   
 
   SUBCASE("Intended behavior"){
-    double n_boids0 = 10;
-    std::vector<Boid> boids0(n_boids0, Boid()); //zero argument constructor vector
-      boids0.push_back(velocity_boid);  
-    velocity_boid.updateVelocity(boids0, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.)); //Approx needed due to very small edge_vel
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(0.));
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     std::vector<Boid> boids1;
@@ -302,11 +295,12 @@ TEST_CASE("Testing velocity update"){
       boids1.push_back(Boid(Position(1., -1.))); //non-sep, close boid
       boids1.push_back(Boid(Position(75., 75.))); //non-close boid
     velocity_boid.updateVelocity(boids1, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.7));
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-0.55));
-    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(321.84));
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.56667));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-0.43333));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(322.595));
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
     std::vector<Boid> boids2;
       boids2.push_back(velocity_boid);
       boids2.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1))); //sep boid
@@ -314,11 +308,12 @@ TEST_CASE("Testing velocity update"){
       boids2.push_back(Boid(Position(1., -1.), Velocity(3., -5.))); //non-sep, close boid
       boids2.push_back(Boid(Position(75., 75.), Velocity(100., 100.))); //non-close boid
     velocity_boid.updateVelocity(boids2, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225));
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
-    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.91667));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.28333));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(305.538));
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
     std::vector<Boid> boids3;
       boids3.push_back(velocity_boid);
       boids3.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
@@ -326,39 +321,50 @@ TEST_CASE("Testing velocity update"){
       boids3.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
       boids3.push_back(Boid(Position(75., 75.), Velocity(100., 100.), Angle(45.))); //non-close boid
     velocity_boid.updateVelocity(boids3, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225)); //check other boids' angles do not influence vel
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
-    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.91667)); //check other boids' angles do not influence vel
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.28333));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(305.538));
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
     std::vector<Boid> boids4;
       boids4.push_back(velocity_boid);
       boids4.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
       boids4.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //sep boid
       boids4.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
     velocity_boid.updateVelocity(boids4, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.225)); //check non-close boid does not influence vel
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.825));
-    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(303.87));
-    
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.91667)); //check non-close boid does not influence vel
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.28333));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(305.538));
 
-    /* NON FUNZIONA
-    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setPosition(Position(0., 0.));
+    velocity_boid.setVelocity(Velocity(1., 1.)); //test with initial velocity != 0
+    velocity_boid.setAngle(Angle(0.)); //reset angle
+    std::vector<Boid> boids6;
+      boids6.push_back(velocity_boid);
+      boids6.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
+      boids6.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //sep boid
+      boids6.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
+    velocity_boid.updateVelocity(boids6, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(1.41667));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-0.78333));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(331.06));
+
     velocity_boid.setPosition(Position(1., 1.)); //test with initial position coords != 0
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
     std::vector<Boid> boids5;
       boids5.push_back(velocity_boid);
-      boids5.push_back(Boid(Position(0.1, 0.1), Velocity(0.1, -0.1), Angle(15.))); //sep boid
-      boids5.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //non-sep boid
+      boids5.push_back(Boid(Position(0.3, 0.3), Velocity(0.1, -0.1), Angle(15.))); //sep boid
+      boids5.push_back(Boid(Position(0.5, -0.5), Velocity(-1., 0.), Angle(150.))); //non-sep, close boid
       boids5.push_back(Boid(Position(1., -1.), Velocity(3., -5.), Angle(200.))); //non-sep, close boid
     velocity_boid.updateVelocity(boids5, 100., 1., 0.5, 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == -0.025);
-    CHECK(velocity_boid.getVelocity().getYVel() == -2.575); */
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(-0.2));
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.9));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(263.991));
 
-    
-    
-    
-    //AGGIUNGI A TUTTE IL CHECK DI AGL
-    //TOGLI INCLUDE BOIDS.CPP
+    //POI AGGIUNGO ALTRI TEST
+
     /*
       velocity_boid.setPosition(4999.99, 0.); //bring boid near to bounds
       velocity_boid.setVelocity(0., 0.); //reset velocity
