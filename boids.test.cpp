@@ -288,7 +288,12 @@ TEST_CASE("Testing velocity update"){
 
   SUBCASE("Intended behavior"){
 
-    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids0;
+      boids0.push_back(velocity_boid);
+    velocity_boid.updateVelocity(boids0, 100., 1., 0.5, 0.5, 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.)); //check no velocity due to close boids is added. Approx is needed due to very small edge_vel
+    CHECK(velocity_boid.getVelocity().getYVel() == 0.);
+
     std::vector<Boid> boids1;
       boids1.push_back(velocity_boid);
       boids1.push_back(Boid(Position(0.1, 0.1))); //sep boid

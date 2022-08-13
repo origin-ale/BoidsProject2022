@@ -146,6 +146,7 @@ Angle Boid::getAngle() const{
 
 Position Boid::setPosition(Position const& newpos){
   pos = newpos;
+  if(pos.getNorm2() > MAX_RADIUS2 || !(std::isfinite(pos.getNorm2()))) throw E_OutOfBounds{};
   return pos;
 }
 
