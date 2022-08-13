@@ -226,14 +226,20 @@ double sep_vel_x = - sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
 double sep_vel_y = - sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
 Velocity sep_vel{sep_vel_x, sep_vel_y};
 
-double align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getXVel());
-double align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getYVel());
-Velocity align_vel{align_vel_x,align_vel_y};
+double align_vel_x{0.};
+double align_vel_y{0.};
+double cohes_vel_x{0.};
+double cohes_vel_y{0.};
+if(nboids_nearby != 0) {  //avoid dividing by 0 if there are no close boids
+align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getXVel());
+align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getYVel());
 
 double near_centermass_x = sum_pos_center_x / (nboids_nearby);
 double near_centermass_y = sum_pos_center_y / (nboids_nearby);
-double cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
-double cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
+cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
+cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
+}
+Velocity align_vel{align_vel_x,align_vel_y};
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
 double edge_factor = 1.; //not in input, not supposed to be modified
