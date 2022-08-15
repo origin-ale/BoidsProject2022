@@ -170,7 +170,10 @@ Position Boid::moveBoid(double delta_t){
   if(!(std::isfinite(future_x)) || 
      !(std::isfinite(future_y)) || 
       future_x * future_x + future_y * future_y > MAX_RADIUS2
-    ) setPosition(Position(pos.getX(), pos.getY())); //implement "bouncing" mechanic (poi ti spiego)
+    ){
+    setPosition(Position(pos.getX(), pos.getY()));
+    setVelocity(Velocity(- vel.getXVel(), - vel.getYVel()));
+    }
   else setPosition(Position(future_x, future_y));
   assert(pos.getNorm2() <= MAX_RADIUS2);
   return pos;
@@ -243,10 +246,15 @@ cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 Velocity align_vel{align_vel_x,align_vel_y};
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
-double edge_factor = 1.; //not in input, not supposed to be modified
-double edge_vel_x = - edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getCosine();
-double edge_vel_y = - edge_factor * (1/(MAX_RADIUS2 - pos.getNorm2())) * agl.getSine();
-Velocity edge_vel{edge_vel_x, edge_vel_y};
+double edge_factor = 1; //not in input, not supposed to be modified
+double edge_limit_sq = 1E8;
+Angle pos_angle{std::atan2(pos.getY(),pos.getX())};
+Velocity edge_vel{0., 0.};
+if(MAX_RADIUS2 - pos.getNorm2() < edge_limit_sq){
+  double edge_vel_x = - edge_factor * (1/std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getCosine(); //use position angle
+  double edge_vel_y = - edge_factor * (1/std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getSine();
+  edge_vel = Velocity(edge_vel_x, edge_vel_y);
+}
 
 vel += (sep_vel + align_vel + cohes_vel + edge_vel);
 

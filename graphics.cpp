@@ -17,26 +17,27 @@ int main()
 
     std::vector<Boid> boids;
     std::vector<sf::CircleShape> boid_triangles;
-    int n_boids=20; //number of boids, to enter in input
+    int n_boids=100; //number of boids, to enter in input
     if(n_boids<=0) throw E_InvalidNumberOfBoids{};
-    double close_radius = 50.;
-    double sep_radius = 100.; 
-    double sep_factor = 5.; 
-    double align_factor = 0.9;
-    double cohes_factor = 0.05;
+    double close_radius = 150.;
+    double sep_radius = 50.; 
+    double sep_factor = 0.1; 
+    double align_factor = 1E-2;
+    double cohes_factor = 5E-3;
 
     double sim_radius = std::sqrt(MAX_RADIUS2);
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     for(int i=0; i<n_boids; ++i) {
-      double spawn_radius = sim_radius * std::rand()/(RAND_MAX+5E9); //change names, these are polar coords
+      double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
       Angle spawn_angle{360. * std::rand()/RAND_MAX};
       Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
-      double spawn_speed = std::sqrt(MAX_SPEED2 - 5E13) * std::rand()/(RAND_MAX+1E8); //change names, these are polar coords
+      double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
       Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
       Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
       boids.push_back(Boid(spawn_pos,spawn_vel));
 
       boid_triangles.push_back(sf::CircleShape(12.,3)); //a triangle is just a circle approxed with 3 points
+      boid_triangles[i].setOrigin(6.,6.);
       boid_triangles[i].setFillColor(sf::Color::Black);
       boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY());
       boid_triangles[i].setRotation(- boids[i].getAngle().getDegrees());
