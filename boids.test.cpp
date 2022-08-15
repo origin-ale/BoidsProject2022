@@ -1,5 +1,4 @@
 #include "boids.hpp"
-#include "boids.cpp"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include<iostream>

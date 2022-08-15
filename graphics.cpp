@@ -3,7 +3,7 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(2400, 1500), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(2400, 1500), "Boids Simulation");
     sf::CircleShape sim_zone(750., 100.);
     sim_zone.setPosition(-750.,-750.);
     sf::RectangleShape background(sf::Vector2f(2400.,1500.));
