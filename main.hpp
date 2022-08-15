@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "boids.hpp"
+#include "graphics.hpp"
 #include <vector>
 #include <iostream>
 #include <cassert>

@@ -223,8 +223,8 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
   }
 
 //calculate velocity components and add (IMPLEMENT WITH DOUBLE*POSITION AND DOUBLE*VELOCITY OPERATORS)
-double sep_vel_x = - sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
-double sep_vel_y = - sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
+double sep_vel_x = sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
+double sep_vel_y = sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
 Velocity sep_vel{sep_vel_x, sep_vel_y};
 
 double align_vel_x{0.};
@@ -251,7 +251,7 @@ Velocity edge_vel{edge_vel_x, edge_vel_y};
 vel += (sep_vel + align_vel + cohes_vel + edge_vel);
 
 //update angle
-agl = Angle(360 * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
+agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
 
 return vel;
 
