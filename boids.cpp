@@ -166,15 +166,13 @@ Position Boid::moveBoid(double delta_t){
 
   double future_x = pos.getX() + vel.getXVel() * delta_t;
   double future_y = pos.getY() + vel.getYVel() * delta_t;
-  //only move boid if both future coords are in bounds (TEMP, maybe implement polar coordinates)
-  if(!(std::isfinite(future_x)) || 
-     !(std::isfinite(future_y)) || 
-      future_x * future_x + future_y * future_y > MAX_RADIUS2
-    ){
-    setPosition(Position(pos.getX(), pos.getY()));
+  try {
+    setPosition(Position(future_x, future_y));
+  } catch(E_OutOfBounds){ 
+    Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX()) / (2 * pi)};
+    setPosition(Position(pos_angle.getCosine() * std::sqrt(MAX_RADIUS2-1), pos_angle.getSine() * std::sqrt(MAX_RADIUS2-1)));
     setVelocity(Velocity(- vel.getXVel(), - vel.getYVel()));
-    }
-  else setPosition(Position(future_x, future_y));
+  }
   assert(pos.getNorm2() <= MAX_RADIUS2);
   return pos;
 }
@@ -246,17 +244,24 @@ cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 Velocity align_vel{align_vel_x,align_vel_y};
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
-double edge_factor = 1; //not in input, not supposed to be modified
-double edge_limit_sq = 1E8;
-Angle pos_angle{std::atan2(pos.getY(),pos.getX())};
+double edge_factor = 5E3; //not in input, not supposed to be modified
+double edge_limit_sq = 1E4;
+Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX())/(2 * pi)};
 Velocity edge_vel{0., 0.};
 if(MAX_RADIUS2 - pos.getNorm2() < edge_limit_sq){
-  double edge_vel_x = - edge_factor * (1/std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getCosine(); //use position angle
-  double edge_vel_y = - edge_factor * (1/std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getSine();
-  edge_vel = Velocity(edge_vel_x, edge_vel_y);
+  double edge_vel_x = - edge_factor * (1./std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getCosine();
+  double edge_vel_y = - edge_factor * (1./std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getSine();
+  try{
+    edge_vel = Velocity(edge_vel_x, edge_vel_y);
+  } catch(E_SpeedTooHigh){
+    edge_vel = Velocity((0.1 * MAX_SPEED2) * pos_angle.getCosine(), (0.1 * MAX_SPEED2) * pos_angle.getSine());
+  }
 }
-
-vel += (sep_vel + align_vel + cohes_vel + edge_vel);
+try {
+  vel += (sep_vel + align_vel + cohes_vel + edge_vel);
+} catch(E_SpeedTooHigh) {
+  vel = Velocity(agl.getCosine()*std::sqrt(MAX_SPEED2-1.), agl.getSine()*std::sqrt(MAX_SPEED2-1.));
+}
 
 //update angle
 agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians

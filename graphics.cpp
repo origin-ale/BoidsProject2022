@@ -21,9 +21,9 @@ int main()
     if(n_boids<=0) throw E_InvalidNumberOfBoids{};
     double close_radius = 150.;
     double sep_radius = 50.; 
-    double sep_factor = 0.1; 
-    double align_factor = 1E-2;
-    double cohes_factor = 5E-3;
+    double sep_factor = 5E-3; 
+    double align_factor = 0.3;
+    double cohes_factor = 1E-3;
 
     double sim_radius = std::sqrt(MAX_RADIUS2);
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -60,7 +60,7 @@ int main()
         future_boids[i].moveBoid(TIME_STEP);
       }
       boids = future_boids;
-      std::this_thread::sleep_for(std::chrono::milliseconds(16));
+      //std::this_thread::sleep_for(std::chrono::milliseconds(4));
 
       window.clear();
       window.draw(background);
