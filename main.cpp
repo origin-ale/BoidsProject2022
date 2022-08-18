@@ -2,15 +2,38 @@
 
 int main()
 {
-  std::vector<Boid> boids;
-  int iterations = 1E5;
-  int n_boids=10; //number of boids, to enter in input
-  if(n_boids<=0 || !(std::isfinite(n_boids))) throw E_InvalidNumberOfBoids{};
+  int n_boids;
+  try{
+    std::cout << "Enter number of boids: "; std::cin >> n_boids;
+  } catch(E_InvalidNumberOfBoids) { while (n_boids<=0 || !(std::isfinite(n_boids))) {
+    std::cout << "Invalid number of boids entered. Please enter again: ";  std::cin >> n_boids; }
+  }
+
+  double sep_factor;
+  try{
+    std::cout << "Enter separation factor: "; std::cin >> sep_factor;
+  } catch(E_InvalidSeparationFactor) { while (sep_factor<0 || !(std::isfinite(sep_factor))) {
+    std::cout << "Invalid separation factor entered. Please enter again: ";  std::cin >> sep_factor; }
+  }
+
+  double align_factor;
+  try{
+    std::cout << "Enter alignment factor: "; std::cin >> align_factor;
+  } catch(E_InvalidAlignmentFactor) { while (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) {
+    std::cout << "Invalid alignment factor entered. Please enter again: ";  std::cin >> align_factor; }
+  }
+
+  double cohes_factor;
+  try{
+    std::cout << "Enter cohesion factor: "; std::cin >> cohes_factor;
+  } catch(E_InvalidCohesionFactor) { while (cohes_factor<0 || !(std::isfinite(cohes_factor))) {
+    std::cout << "Invalid cohesion factor entered. Please enter again: ";  std::cin >> cohes_factor; }
+  }
+
   double close_radius = 100.;
   double sep_radius = 1; 
-  double sep_factor = 100.; 
-  double align_factor = 0.5;
-  double cohes_factor = 0.5;
+  std::vector<Boid> boids;
+  int iterations = 1E5;
 
   double sim_radius = std::sqrt(MAX_RADIUS2);
   std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -36,7 +59,6 @@ int main()
       future_boids[i].moveBoid(TIME_STEP);
     }
     boids = future_boids;
-  
 
     if(i % 5000 == 0){ //maybe implement in stats file?
       std::vector<double> distances;
@@ -46,8 +68,9 @@ int main()
           if(j!=k) distances.push_back(sqrt((boids[j].getPosition() - boids[k].getPosition()).getNorm2()));
         }
         speeds.push_back(sqrt(boids[j].getVelocity().getNorm2()));
-      }
+    }
 
+    //CAMBIA
     double dist_sum = std::accumulate(distances.begin(), distances.end(), 0.0); //ABSOLUTELY IMPLEMENT AS FUNCTIONS
     double dist_mean = dist_sum / distances.size();
     std::vector<double> dist_diff(distances.size());
