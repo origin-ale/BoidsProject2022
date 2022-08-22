@@ -64,8 +64,8 @@ int main()
       std::vector<double> distances;
       std::vector<double> speeds;
       for(int j = 0; j < n_boids; ++j){
-        for(int k = 0; k < n_boids; ++k){
-          if(j!=k) distances.push_back(sqrt((boids[j].getPosition() - boids[k].getPosition()).getNorm2()));
+        for(int k = j+1; k < n_boids; ++k){
+          distances.push_back(sqrt((boids[j].getPosition() - boids[k].getPosition()).getNorm2()));
         }
         speeds.push_back(sqrt(boids[j].getVelocity().getNorm2()));
     }
