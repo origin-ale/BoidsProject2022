@@ -178,7 +178,7 @@ Position Boid::moveBoid(double delta_t){
 }
 
 
-Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
   
   if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
   if (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) throw E_InvalidAlignmentFactor{};
@@ -187,8 +187,8 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
   //initialization of component wise sums of members of nearby boids OTHER THAN SELF
   double nboids_nearby{0.};
   
-  double sum_pos_sep_x{0.}; 
-  double sum_pos_sep_y{0.}; 
+  double sum_pos_boid_x{0.}; 
+  double sum_pos_boid_y{0.}; 
   int nboids_in_sep{0}; //used in separation
 
   double sum_vel_x{0.};
@@ -196,6 +196,10 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
 
   double sum_pos_center_x{0.};
   double sum_pos_center_y{0.}; //used in cohesion
+
+  double sum_pos_pred_x{0.}; 
+  double sum_pos_pred_y{0.};
+  int npreds_in_sep{0}; //used in predator velocity
 
   for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
     
@@ -206,9 +210,9 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
 
     if(dij <= close_radius && dij != 0.) {    //only apply flight rules to close boids, excluding self
 
-      if (dij < sep_radius) {    //only add separation components if the distance between two boids is < sep_radius
-        sum_pos_sep_x += pj.getX();
-        sum_pos_sep_y += pj.getY();
+      if (dij < sep_radius) {    //separation component due to nearby ordinary boids
+        sum_pos_boid_x += pj.getX();
+        sum_pos_boid_y += pj.getY();
         ++nboids_in_sep;
       }
 
@@ -223,9 +227,28 @@ Velocity Boid::updateVelocity(std::vector<Boid> const boids, double close_radius
       } 
   }
 
+  for (int k=0; static_cast<unsigned long>(k) < predators.size(); ++k) { //this cycle calculates separation component due to nearby predators
+   
+    Position pred_pk{predators[k].getPosition()};
+    double pred_dik{sqrt((pos-pred_pk).getNorm2())};
+    Velocity pred_vk{predators[k].getVelocity()};
+
+    if(pred_dik < sep_radius) {
+      sum_pos_pred_x += pred_pk.getX();
+      sum_pos_pred_y += pred_pk.getY();
+      ++npreds_in_sep;
+    }
+
+  }
+
+//velocity for ordinary boids
 //calculate velocity components and add (IMPLEMENT WITH DOUBLE*POSITION AND DOUBLE*VELOCITY OPERATORS)
-double sep_vel_x = sep_factor * (nboids_in_sep * pos.getX() - sum_pos_sep_x);
-double sep_vel_y = sep_factor * (nboids_in_sep * pos.getY() - sum_pos_sep_y);
+double sum_pos_sep_x = sum_pos_boid_x + sum_pos_pred_x;
+double sum_pos_sep_y = sum_pos_boid_y + sum_pos_pred_y;
+double nsep = nboids_in_sep + npreds_in_sep;
+
+double sep_vel_x = sep_factor * (nsep * pos.getX() - sum_pos_sep_x);
+double sep_vel_y = sep_factor * (nsep * pos.getY() - sum_pos_sep_y);
 Velocity sep_vel{sep_vel_x, sep_vel_y};
 
 double align_vel_x{0.};
@@ -241,9 +264,10 @@ double near_centermass_y = sum_pos_center_y / (nboids_nearby);
 cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
 cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
 }
-Velocity align_vel{align_vel_x,align_vel_y};
+Velocity align_vel{align_vel_x, align_vel_y};
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
+//edge velocity
 double edge_factor = 5E3; //not in input, not supposed to be modified
 double edge_limit_sq = 1E4;
 Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX())/(2 * pi)};
@@ -257,6 +281,7 @@ if(MAX_RADIUS2 - pos.getNorm2() < edge_limit_sq){
     edge_vel = Velocity((0.1 * MAX_SPEED2) * pos_angle.getCosine(), (0.1 * MAX_SPEED2) * pos_angle.getSine());
   }
 }
+
 try {
   vel += (sep_vel + align_vel + cohes_vel + edge_vel);
 } catch(E_SpeedTooHigh) {
@@ -267,5 +292,92 @@ try {
 agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
 
 return vel;
+
+}
+
+
+
+Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double cohes_factor) {
+  
+  if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
+  if (cohes_factor<0 || !(std::isfinite(cohes_factor))) throw E_InvalidCohesionFactor{};
+
+  double sum_pos_center_x{0.};
+  double sum_pos_center_y{0.};
+  int nboids_nearby{0}; //used in cohesion with ordinary boids
+  
+  double sum_pos_pred_x{0.};
+  double sum_pos_pred_y{0.};
+  int npreds_in_sep{0}; //used in separation from other predators
+
+  for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
+  
+    //initialization of auxiliary variables
+    Position pj{boids[j].getPosition()};
+    double dij{sqrt((pos - pj).getNorm2())};
+    Velocity vj{boids[j].getVelocity()};
+
+    if(dij <= close_radius) {    //only apply flight rules to close boids
+
+    sum_pos_center_x += pj.getX();
+    sum_pos_center_y += pj.getY();
+
+    ++nboids_nearby;
+
+    } 
+  }
+
+  for (int k=0; static_cast<unsigned long>(k) < predators.size(); ++k) { //this cycle calculates separation component due to nearby predators
+    
+    Position pred_pk{predators[k].getPosition()};
+    double pred_dik{sqrt((pos-pred_pk).getNorm2())};
+    Velocity pred_vk{predators[k].getVelocity()};
+
+    if(pred_dik < sep_radius) {
+      sum_pos_pred_x += pred_pk.getX();
+      sum_pos_pred_y += pred_pk.getY();
+      ++npreds_in_sep;
+    }
+
+  }
+
+  //separation velocity due to other predators only
+  double sep_vel_x = sep_factor * (npreds_in_sep * pos.getX() - sum_pos_pred_x);
+  double sep_vel_y = sep_factor * (npreds_in_sep * pos.getY() - sum_pos_pred_y);
+  Velocity sep_vel{sep_vel_x, sep_vel_y};
+
+  //cohesion velocity in order for the predator to chase ordinary boids
+  double cohes_vel_x{0.};
+  double cohes_vel_y{0.};
+  if(nboids_nearby != 0) {  //avoid dividing by 0 if there are no close boids
+  double near_centermass_x = sum_pos_center_x / (nboids_nearby);
+  double near_centermass_y = sum_pos_center_y / (nboids_nearby);
+  cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
+  cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
+  }
+  Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
+
+  //edge velocity
+  double edge_factor = 5E3; //not in input, not supposed to be modified
+  double edge_limit_sq = 1E4;
+  Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX())/(2 * pi)};
+  Velocity edge_vel{0., 0.};
+  if(MAX_RADIUS2 - pos.getNorm2() < edge_limit_sq){
+    double edge_vel_x = - edge_factor * (1./std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getCosine();
+    double edge_vel_y = - edge_factor * (1./std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getSine();
+    try{
+      edge_vel = Velocity(edge_vel_x, edge_vel_y);
+    } catch(E_SpeedTooHigh){
+      edge_vel = Velocity((0.1 * MAX_SPEED2) * pos_angle.getCosine(), (0.1 * MAX_SPEED2) * pos_angle.getSine());
+    }
+  }
+
+  try {
+    vel += (sep_vel + cohes_vel + edge_vel);
+  } catch(E_SpeedTooHigh) {
+    vel = Velocity(agl.getCosine()*std::sqrt(MAX_SPEED2-1.), agl.getSine()*std::sqrt(MAX_SPEED2-1.));
+  }
+
+  return vel;
 
 }

@@ -12,3 +12,4 @@ main.dSym
 .vscode/c_cpp_properties.json
 .vscode/tasks.json
 doctest.h
+build/

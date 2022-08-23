@@ -15,6 +15,7 @@ int main()
     view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
     window.setView(view);
 
+    std::vector<Boid> predators;   //PROVVISORIO
     std::vector<Boid> boids;
     std::vector<sf::CircleShape> boid_triangles;
     int n_boids=100; //number of boids, to enter in input
@@ -56,7 +57,7 @@ int main()
 
       std::vector<Boid> future_boids = boids;
       for(int i=0; i<n_boids; ++i) {
-        future_boids[i].updateVelocity(boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+        future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
         future_boids[i].moveBoid(TIME_STEP);
       }
       boids = future_boids;
