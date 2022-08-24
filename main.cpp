@@ -78,7 +78,7 @@ int main()
 
     std::vector<Boid> future_predators = predators;
     for(int i=0; i<n_preds; ++i) {
-      future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, cohes_factor);
+      future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
       future_predators[i].moveBoid(TIME_STEP);
     }
     predators = future_predators;

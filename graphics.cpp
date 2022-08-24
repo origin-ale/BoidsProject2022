@@ -15,16 +15,19 @@ int main()
     view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
     window.setView(view);
 
-    std::vector<Boid> predators;   //PROVVISORIO
     std::vector<Boid> boids;
+    std::vector<Boid> predators;
     std::vector<sf::CircleShape> boid_triangles;
-    int n_boids=100; //number of boids, to enter in input 
+    std::vector<sf::CircleShape> pred_triangles;
+    int n_boids = 50; //number of boids, to enter in input
     if(n_boids<=0) throw E_InvalidNumberOfBoids{};
+    int n_preds = 2; //number of predators, to enter in input
+    if(n_preds<0) throw E_InvalidNumberOfBoids{};
     double close_radius = 150.;
-    double sep_radius = 50.; 
-    double sep_factor = 5E-3; 
-    double align_factor = 0.3;
-    double cohes_factor = 1E-3;
+    double sep_radius = 25.; 
+    double sep_factor = 0.5; //5E-3
+    double align_factor = 0.1;
+    double cohes_factor = 0.3;
 
     double sim_radius = std::sqrt(MAX_RADIUS2);
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -46,6 +49,24 @@ int main()
     }
     assert(boids.size() == static_cast<unsigned long>(n_boids));
 
+    for(int i=0; i<n_preds; ++i) {
+      double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
+      Angle spawn_angle{360. * std::rand()/RAND_MAX};
+      Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+      double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
+      Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
+      Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+      predators.push_back(Boid(spawn_pos,spawn_vel));
+
+      pred_triangles.push_back(sf::CircleShape(16.,3)); //a triangle is just a circle approxed with 3 points
+      pred_triangles[i].setOrigin(6.,6.);
+      pred_triangles[i].setFillColor(sf::Color::Red);
+      pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
+      pred_triangles[i].setRotation(- predators[i].getAngle().getDegrees());
+      window.draw(pred_triangles[i]);
+    }
+    assert(predators.size() == static_cast<unsigned long>(n_preds));
+
     while (window.isOpen())
     {
       sf::Event event;
@@ -63,6 +84,13 @@ int main()
       boids = future_boids;
       //std::this_thread::sleep_for(std::chrono::milliseconds(4));
 
+      std::vector<Boid> future_predators = predators;
+      for(int i=0; i<n_preds; ++i) {
+        future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+        future_predators[i].moveBoid(TIME_STEP);
+      }
+      predators = future_predators;
+
       window.clear();
       window.draw(background);
       window.draw(sim_zone);
@@ -70,6 +98,11 @@ int main()
         boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY());
         boid_triangles[i].setRotation(- boids[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
         window.draw(boid_triangles[i]);
+      }
+      for(int i = 0; i < n_preds; ++i){
+        pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
+        pred_triangles[i].setRotation(- predators[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
+        window.draw(pred_triangles[i]);
       }
       window.display();
 
