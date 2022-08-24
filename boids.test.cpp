@@ -228,9 +228,7 @@ TEST_CASE("Testing movement"){ //tests move and set functions
 
     //try to set angle to nonfinites, constructors should throw
     CHECK_THROWS_AS(movement_boid.setAngle(Angle(INFINITY)), E_InvalidAngle);
-  
     CHECK_THROWS_AS(movement_boid.setAngle(Angle(HUGE_VAL)), E_InvalidAngle);
-
     CHECK_THROWS_AS(movement_boid.setAngle(Angle(NAN)), E_InvalidAngle);
 
   }
@@ -299,7 +297,7 @@ TEST_CASE("Testing velocity update"){
 
   SUBCASE("Intended behavior"){
     
-    //no predators
+    //updateBoidVelocity, no predators
     std::vector<Boid> predators0; //initialize empty vector
 
     velocity_boid.setPosition(Position(1., 1.));
@@ -403,15 +401,15 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(225.)); //boid heads towards opposite direction
 
 
-    //predators
+    //updateBoidVelocity, predators
     velocity_boid.setPosition(Position(1., 1.));
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     std::vector<Boid> predators1;
       predators1.push_back(Boid(Position(0.5, 0.5))); //sep predator
     velocity_boid.updateBoidVelocity(boids0, predators1, 100., 1., 100., 0.5, 0.5);
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(50.0)); //check only added velocity is sep_vel due to predator
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(50.0));
-    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(45.));  
+    CHECK(velocity_boid.getVelocity().getXVel() == 50.0); //check only added velocity is sep_vel due to predator: the boid flees from it
+    CHECK(velocity_boid.getVelocity().getYVel() == 50.0);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.);  
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     velocity_boid.setAngle(Angle(0.)); //reset angle
@@ -423,14 +421,37 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(99.75));
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(89.856));
 
-//NON FUNZIONA, NON SO PERCHé, la responsabile dovrebbe essere cohes_vel
-    velocity_boid.setPosition(Position(5., 5.)); //move boid away
+
+    //updatePredatorVelocity
+    velocity_boid.setPosition(Position(1., 1.));
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    velocity_boid.updateBoidVelocity(boids0, predators1, 100., 1., 100., 0.5, 0.5);
+      predators0.push_back(velocity_boid);
+      boids0.pop_back(); //remove velocity_boid from boids0, which is now empty
+    velocity_boid.updatePredatorVelocity(predators0, boids0, 100., 1., 100., 0.5);
     CHECK(velocity_boid.getVelocity().getXVel() == 0.); //check velocity doesn't change
     CHECK(velocity_boid.getVelocity().getYVel() == 0.);
+
+      predators1.push_back(velocity_boid);
+    velocity_boid.updatePredatorVelocity(predators1, boids0, 100., 1., 100., 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == 50.); //check sep_vel due to other predator is added
+    CHECK(velocity_boid.getVelocity().getYVel() == 50.);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator heads towards opposite direction
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    std::vector<Boid> boids7;
+      boids7.push_back(Boid(Position(1.5, 1.5)));
+    velocity_boid.updatePredatorVelocity(predators0, boids7, 100., 1., 100., 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == 0.25); //check cohes_vel due to close boid is added
+    CHECK(velocity_boid.getVelocity().getYVel() == 0.25);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator chases the boid
     
-  
-  } 
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.updatePredatorVelocity(predators1, boids7, 100., 1., 100., 0.5);
+    CHECK(velocity_boid.getVelocity().getXVel() == 50.25); //check with one other predator and one boid
+    CHECK(velocity_boid.getVelocity().getYVel() == 50.25);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.);
+
+
+  }
  
 }

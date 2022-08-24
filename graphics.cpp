@@ -18,7 +18,7 @@ int main()
     std::vector<Boid> predators;   //PROVVISORIO
     std::vector<Boid> boids;
     std::vector<sf::CircleShape> boid_triangles;
-    int n_boids=100; //number of boids, to enter in input
+    int n_boids=100; //number of boids, to enter in input 
     if(n_boids<=0) throw E_InvalidNumberOfBoids{};
     double close_radius = 150.;
     double sep_radius = 50.; 

@@ -378,6 +378,9 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     vel = Velocity(agl.getCosine()*std::sqrt(MAX_SPEED2-1.), agl.getSine()*std::sqrt(MAX_SPEED2-1.));
   }
 
+  //update angle
+  agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
+
   return vel;
 
 }
