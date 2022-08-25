@@ -202,13 +202,14 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
   int npreds_in_sep{0}; //used in predator velocity
 
   for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
-    
+
     //initialization of auxiliary variables
     Position pj{boids[j].getPosition()};
     double dij{sqrt((pos - pj).getNorm2())};
     Velocity vj{boids[j].getVelocity()};
+    Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if(dij <= close_radius && dij != 0.) {    //only apply flight rules to close boids, excluding self
+    if(aj.getDegrees() >= (agl.getDegrees() - 100.) && aj.getDegrees() <= (agl.getDegrees() + 100.) && dij <= close_radius && dij != 0.) {    //only apply flight rules to close boids in sight range, excluding self
 
       if (dij < sep_radius) {    //separation component due to nearby ordinary boids
         sum_pos_boid_x += pj.getX();
@@ -232,8 +233,9 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
     Velocity pred_vk{predators[k].getVelocity()};
+    Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
-    if(pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
+    if(/*ak.getDegrees() >= (agl.getDegrees() - 100.) && ak.getDegrees() <= (agl.getDegrees() + 100.) && */pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
       sum_pos_pred_x += pred_pk.getX();
       sum_pos_pred_y += pred_pk.getY();
       ++npreds_in_sep;
@@ -268,9 +270,9 @@ Velocity align_vel{align_vel_x, align_vel_y};
 Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
 //edge velocity
-double edge_factor = 25.; //not in input, not supposed to be modified 5E3
+double edge_factor = 50.; //not in input, not supposed to be modified
 double edge_limit_sq = 1E4;
-Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX())/(2 * pi)};
+Angle pos_angle{360. * std::atan2(pos.getY(),pos.getX())/(2 * pi)};
 Velocity edge_vel{0., 0.};
 if(MAX_RADIUS2 - pos.getNorm2() < edge_limit_sq){
   double edge_vel_x = - edge_factor * (1./std::sqrt(MAX_RADIUS2 - pos.getNorm2())) * pos_angle.getCosine();
@@ -320,8 +322,9 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Position pj{boids[j].getPosition()};
     double dij{sqrt((pos - pj).getNorm2())};
     Velocity vj{boids[j].getVelocity()};
+    Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if(dij <= close_radius) {    //only apply flight rules to close boids
+    if(/*aj.getDegrees() >= (agl.getDegrees() - 150.) && aj.getDegrees() <= (agl.getDegrees() + 150.) && */dij <= close_radius) {    //only apply flight rules to close boids
 
     sum_pos_center_x += pj.getX();
     sum_pos_center_y += pj.getY();
@@ -339,8 +342,9 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
     Velocity pred_vk{predators[k].getVelocity()};
+    Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
-    if(pred_dik < sep_radius) {
+    if(/*ak.getDegrees() >= (agl.getDegrees() - 150.) && ak.getDegrees() <= (agl.getDegrees() + 150.) && */pred_dik < sep_radius) {
       sum_pos_pred_x += pred_pk.getX();
       sum_pos_pred_y += pred_pk.getY();
       ++npreds_in_sep;

@@ -300,7 +300,7 @@ TEST_CASE("Testing velocity update"){
   }
   
 
-  SUBCASE("Intended behavior"){
+  SUBCASE("Intended behavior"){    //DA RIFARE TENENDO CONTO DELL'ANGOLO DI VISTA
     
     //updateBoidVelocity, no predators
     std::vector<Boid> predators0; //initialize empty vector
