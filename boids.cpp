@@ -228,7 +228,7 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
    
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
-    Velocity pred_vk{predators[k].getVelocity()};
+    //Velocity pred_vk{predators[k].getVelocity()};
     Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
     if(/*ak.getDegrees() >= (agl.getDegrees() - 100.) && ak.getDegrees() <= (agl.getDegrees() + 100.) && */pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
@@ -333,7 +333,7 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
-    Velocity pred_vk{predators[k].getVelocity()};
+    //Velocity pred_vk{predators[k].getVelocity()};
     Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
     if(/*ak.getDegrees() >= (agl.getDegrees() - 150.) && ak.getDegrees() <= (agl.getDegrees() + 150.) && */pred_dik < sep_radius) {
