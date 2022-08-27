@@ -12,11 +12,12 @@ int main()
   double sight_angle;
 
   if(debug){
-    n_boids = 100;
+    n_boids = 50;
     sep_factor = 0.5;
     align_factor = 0.1;
     cohes_factor = 0.3;
-    n_preds = 5;
+    n_preds = 2;
+    sight_angle = 60.;
   }
 
   else
@@ -57,13 +58,12 @@ int main()
       std::cin >> n_preds; 
     }
 
-  }
-
-  std::cout << "Enter sight angle: "; 
-  std::cin >> sight_angle; //recommended values around 0.3
-  while(cohes_factor<0 || !(std::isfinite(sight_angle))) {
-    std::cout << "Invalid sight angle entered. Please enter again: ";  
-    std::cin >> sight_angle; 
+    std::cout << "Enter sight angle: "; 
+    std::cin >> sight_angle; //recommended values around 0.3
+    while(cohes_factor<0 || !(std::isfinite(sight_angle))) {
+      std::cout << "Invalid sight angle entered. Please enter again: ";  
+      std::cin >> sight_angle; 
+    }
   }
 
   //parameter assertions
@@ -78,7 +78,7 @@ int main()
   double window_x = 1500.;
   double window_y = 1500.;
   double sim_radius = std::sqrt(MAX_RADIUS2);
-  double scale = (std::min(window_x - 50. , window_y - 50.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window //replace 10 with something proportional to boid sprite size
+  double scale = (std::min(window_x - 50. , window_y - 50.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window //replace numbers with something proportional to boid sprite size
   double graph_radius = scale * sim_radius;
   double close_radius = 150.;
   double sep_radius = 25.;
@@ -102,6 +102,8 @@ int main()
   std::vector<Boid> predators;
   std::vector<sf::CircleShape> boid_triangles;
   std::vector<sf::CircleShape> pred_triangles;
+  std::vector<sw::Ring> boid_sights;
+  std::vector<sw::Ring> pred_sights;
 
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
@@ -115,7 +117,7 @@ int main()
     Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
     boids.push_back(Boid(spawn_pos,spawn_vel));
 
-    initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, sf::Color::Black, window, scale);
+    initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, sf::Color::Black, sf::Color(30, 200 ,30, 90), window, scale);
   }
   assert(boids.size() == static_cast<unsigned long>(n_boids));
 
@@ -129,7 +131,7 @@ int main()
     Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
     predators.push_back(Boid(spawn_pos,spawn_vel));
 
-    initializeGraphic(predators[i], sf::CircleShape(11.,3.), pred_triangles, sf::Color(200, 50, 50), window, scale);
+    initializeGraphic(predators[i], sf::CircleShape(11.,3.), pred_triangles, pred_sights, sight_angle, sf::Color(200, 50, 50), sf::Color(100, 25, 25, 50), window, scale);
   }
   assert(predators.size() == static_cast<unsigned long>(n_preds));
 
@@ -162,11 +164,27 @@ int main()
     window.clear();
     window.draw(background);
     window.draw(sim_zone);
+    //TEST--------
+    // sf::CircleShape test_triangle{100.,3};
+    // sf::CircleShape marker{10.};
+
+    // test_triangle.setOrigin(100.,100.);
+    // test_triangle.setPosition(0.,0.);
+
+    // marker.setFillColor(sf::Color::Red);
+    // marker.setOrigin(10.,10.);
+    // marker.setPosition(test_triangle.getPosition());
+
+    // //std::cout<< test_triangle.getPosition().x << " " << test_triangle.getPosition().y;
+
+    // window.draw(test_triangle);
+    // window.draw(marker);
+    //-------------
     for(int i = 0; i < n_boids; ++i){
-      updateGraphic(boids[i], boid_triangles[i], window, scale);
+      updateGraphic(boids[i], boid_triangles[i], boid_sights[i], window, scale);
     }
     for(int i = 0; i < n_preds; ++i){
-      updateGraphic(predators[i], pred_triangles[i], window, scale);
+      updateGraphic(predators[i], pred_triangles[i], pred_sights[i], window, scale);
     }
     window.display();
     std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));

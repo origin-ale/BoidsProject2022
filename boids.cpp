@@ -205,7 +205,7 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
   double sum_pos_pred_y{0.};
   int npreds_in_sep{0}; //used in predator velocity
 
-  for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates all sums but does not set velocities
+  for (int j = 0; static_cast<unsigned long>(j) < boids.size(); ++j) { //this cycle calculates sums for ordinary boids
 
     //initialization of auxiliary variables
     Position pj{boids[j].getPosition()};
