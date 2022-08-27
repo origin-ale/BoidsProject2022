@@ -10,7 +10,7 @@
 
 constexpr double pi = 3.141592653589793238462643383279; //numbers library is C++20 onwards
 
-constexpr double MAX_RADIUS2 = 562500.;  // maximum value of boid.getPosition().getNorm2()
+constexpr double MAX_RADIUS2 =  1E6;  // maximum value of boid.getPosition().getNorm2()
 struct E_OutOfBounds{}; // exception thrown for radii higher than MAX_RADIUS
 
 constexpr double MAX_SPEED2 = 1E10;  // maximum value of boid.getVelocity().getNorm2()
@@ -20,13 +20,6 @@ struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher th
 
 constexpr double TIME_STEP = 1./60.; //default time step for evolution (60 fps)
 struct E_InvalidMovementTime{}; //exception thrown for overly long times passed to moveBoid
-
-struct E_InvalidNumberOfBoids{}; //exception thrown for negative or null number of boids entered in input
-struct E_InvalidSeparationFactor{}; //exception thrown when separation factor is negative. Thrown immediately if invalid sep_factor is entered in input
-struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor is not in the range (0,1). Thrown immediately if invalid align_factor is entered in input
-struct E_InvalidCohesionFactor{}; //exception thrown when cohesion factor is negative. Thrown immediately if invalid cohes_factor is entered in input
-struct E_InvalidSightAngle{}; //exception thrown for sight angle higher than 180 degrees
-
 
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
 
@@ -88,7 +81,7 @@ class Boid {  // each boid is one of these
   Angle agl; // angle boid is facing, in degrees (counterclockwise from east)
 
   public:
-  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity
+  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity. Spawns a non-predator boid 
   Boid(); //no argument constructor, spawns an unrotated, still boid at (0,0)
   Boid(Position const&);  //position-only constructor, spawns an unrotated, still boid at specified position
   Boid(Position const&, Velocity const&);  //position-velocity constructor, spawns an unrotated boid at specified position with specified velocity

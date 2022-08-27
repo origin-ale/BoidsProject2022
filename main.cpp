@@ -2,39 +2,61 @@
 
 int main()
 {
+  bool debug = true; //debug flag, skips parameter input
+
   int n_boids;
-  try{
-    std::cout << "Enter number of boids: "; std::cin >> n_boids;
-  } catch(E_InvalidNumberOfBoids) { while (n_boids<=0 || !(std::isfinite(n_boids))) {
-    std::cout << "Invalid number of boids entered. Please enter again: ";  std::cin >> n_boids; }
-  }
-
   double sep_factor;
-  try{
-    std::cout << "Enter separation factor: "; std::cin >> sep_factor;
-  } catch(E_InvalidSeparationFactor) { while (sep_factor<0 || !(std::isfinite(sep_factor))) {
-    std::cout << "Invalid separation factor entered. Please enter again: ";  std::cin >> sep_factor; }
-  }
-
   double align_factor;
-  try{
-    std::cout << "Enter alignment factor: "; std::cin >> align_factor;
-  } catch(E_InvalidAlignmentFactor) { while (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) {
-    std::cout << "Invalid alignment factor entered. Please enter again: ";  std::cin >> align_factor; }
-  }
-
   double cohes_factor;
-  try{
-    std::cout << "Enter cohesion factor: "; std::cin >> cohes_factor;
-  } catch(E_InvalidCohesionFactor) { while (cohes_factor<0 || !(std::isfinite(cohes_factor))) {
-    std::cout << "Invalid cohesion factor entered. Please enter again: ";  std::cin >> cohes_factor; }
+  int n_preds;
+
+  if(debug){
+    n_boids = 100;
+    sep_factor = 0.5;
+    align_factor = 0.1;
+    cohes_factor = 0.3;
+    n_preds = 5;
   }
 
-  double n_preds;
-  try{
-    std::cout << "Enter number of predators: "; std::cin >> n_preds;
-  } catch(E_InvalidNumberOfBoids) { while (n_preds<0 || !(std::isfinite(n_preds))) {
-    std::cout << "Invalid number of predators entered. Please enter again: ";  std::cin >> n_preds; }
+  else
+  {
+    //input parameters
+    std::cout << "Enter number of boids: "; 
+    std::cin >> n_boids;
+    while(n_boids<0 || !(std::isfinite(n_boids))){
+      std::cout << "Invalid number of boids entered. Please enter again: ";  
+      std::cin >> n_boids; 
+    }
+
+    std::cout << "Enter separation factor: "; 
+    std::cin >> sep_factor; //recommended values around 0.5
+    while(sep_factor<0 || !(std::isfinite(sep_factor))) {
+      std::cout << "Invalid separation factor entered. Please enter again: ";  
+      std::cin >> sep_factor; 
+    }
+    
+    std::cout << "Enter alignment factor: "; 
+    std::cin >> align_factor; //recommended values around 0.1
+    while(align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) {
+        std::cout << "Invalid alignment factor entered. Please enter again: ";  
+        std::cin >> align_factor; 
+    }
+
+    std::cout << "Enter cohesion factor: "; 
+    std::cin >> cohes_factor; //recommended values around 0.3
+    while(cohes_factor<0 || !(std::isfinite(cohes_factor))) {
+      std::cout << "Invalid cohesion factor entered. Please enter again: ";  
+      std::cin >> cohes_factor; 
+    }
+    
+    std::cout << "Enter number of predators: "; 
+    std::cin >> n_preds;
+    while (n_preds<0 || !(std::isfinite(n_preds))) {
+      std::cout << "Invalid number of predators entered. Please enter again: ";  
+      std::cin >> n_preds; 
+    }
+
+    //view angle should also be input
   }
 
   double sight_angle;
@@ -44,38 +66,84 @@ int main()
     std::cout << "Invalid sight_angle entered. Please enter again: ";  std::cin >> sight_angle; }
   }
 
-  double close_radius = 100.;
-  double sep_radius = 1; 
+  //parameter assertions
+  assert(n_boids>=0 && std::isfinite(n_boids));
+  assert(sep_factor>=0 && std::isfinite(sep_factor));
+  assert(align_factor>=0 && align_factor < 1 && std::isfinite(align_factor));
+  assert(cohes_factor>=0 && std::isfinite(cohes_factor));
+  assert(n_preds>=0 && std::isfinite(n_preds));
+
+  //fixed parameter initialization
+  double window_x = 1500.;
+  double window_y = 1500.;
+  double sim_radius = std::sqrt(MAX_RADIUS2);
+  double scale = (std::min(window_x - 50. , window_y - 50.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window //replace 10 with something proportional to boid sprite size
+  double graph_radius = scale * sim_radius;
+  double close_radius = 150.;
+  double sep_radius = 25.;
+
+  //initialization of graphical features
+  sf::RenderWindow window(sf::VideoMode(window_x, window_y), "Boids Simulation"); //render window
+  sf::CircleShape sim_zone(graph_radius+20., 100.); //simulation area, the "sky"
+  sim_zone.setPosition(-graph_radius-20., -graph_radius-20.); //put sim_zone center at coords (0,0)
+  sf::RectangleShape background(sf::Vector2f(window_x, window_y)); //background rectangle
+  background.setPosition(-window_x/2., -window_y/2.); //center background at coords (0,0)
+  background.setFillColor(sf::Color(240,240,240)); //background color: off-white
+  sim_zone.setFillColor(sf::Color(50,150,255)); //sim_zone color: light blue
+  //center view on (0,0)
+  sf::View view;
+  view.reset(sf::FloatRect(-window_x/2., -window_y/2., window_x, window_y));
+  view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+  window.setView(view);
+
+  //initialization of boids and predators
   std::vector<Boid> boids;
   std::vector<Boid> predators;
-  int iterations = 1E5;
-  double sim_radius = std::sqrt(MAX_RADIUS2);
+  std::vector<sf::CircleShape> boid_triangles;
+  std::vector<sf::CircleShape> pred_triangles;
 
-  std::srand(static_cast<unsigned int>(std::time(nullptr)));
+  std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
+
+  //spawn boids
   for(int i=0; i<n_boids; ++i) {
-    double spawn_radius = sim_radius * std::rand()/RAND_MAX;
+    double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
     Angle spawn_angle{360. * std::rand()/RAND_MAX};
     Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
-    boids.push_back(Boid(spawn_pos));
+    double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
+    Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
+    Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+    boids.push_back(Boid(spawn_pos,spawn_vel));
+
+    initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, sf::Color::Black, window, scale);
   }
   assert(boids.size() == static_cast<unsigned long>(n_boids));
 
-  std::srand(static_cast<unsigned int>(std::time(nullptr)));
+  //spawn predators
   for(int i=0; i<n_preds; ++i) {
-    double spawn_radius = sim_radius * std::rand()/RAND_MAX;
+    double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
     Angle spawn_angle{360. * std::rand()/RAND_MAX};
     Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
-    predators.push_back(Boid(spawn_pos));
+    double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
+    Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
+    Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+    predators.push_back(Boid(spawn_pos,spawn_vel));
+
+    initializeGraphic(predators[i], sf::CircleShape(11.,3.), pred_triangles, sf::Color(200, 50, 50), window, scale);
   }
   assert(predators.size() == static_cast<unsigned long>(n_preds));
 
-  for(int i = 0; i <= iterations; ++i){
-    //DEBUGGING TOOL
-    //   std::cout << "---------- ITERATION " << i << " ----------\n";
-    //   for(int j=0; j< 10; ++j) {
-    //     std::cout << "Position of boid " << j << ": " << "(" << boids[j].getPosition().getX() << "," << boids[j].getPosition().getY() << ")\n";
-    //     std::cout << "Velocity of boid " << j << ": " << "(" << boids[j].getVelocity().getXVel() << "," << boids[j].getVelocity().getYVel() << ")\n";
-    // }
+  int iteration = 0; //iteration counter
+  int update_time_ms = 16; //time between updates, in milliseconds
+  int print_sep_ms = 5000; //time between stat prints, in milliseconds
+  while (window.isOpen())
+  {
+    sf::Event event;
+    while (window.pollEvent(event))
+    {
+      if (event.type == sf::Event::Closed)
+        window.close();
+    }
+
     std::vector<Boid> future_boids = boids;
     for(int i=0; i<n_boids; ++i) {
       future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
@@ -90,7 +158,21 @@ int main()
     }
     predators = future_predators;
 
-    if(i % 5000 == 0){ //maybe implement in stats file?
+    window.clear();
+    window.draw(background);
+    window.draw(sim_zone);
+    for(int i = 0; i < n_boids; ++i){
+      updateGraphic(boids[i], boid_triangles[i], window, scale);
+    }
+    for(int i = 0; i < n_preds; ++i){
+      updateGraphic(predators[i], pred_triangles[i], window, scale);
+    }
+    window.display();
+    std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));
+    //std::cout << "pos: (" << boids[0].getPosition().getX() << ", " << boids[0].getPosition().getY() << "); vel: (" << boids[0].getVelocity().getXVel() << ", " << boids[0].getVelocity().getYVel() << ")\n";
+
+    if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
+    //maybe implement in stats file?
 
     //ordinary boids statistics
     std::vector<double> b_distances;
@@ -138,7 +220,7 @@ int main()
     double p_speed_sq_sum = std::inner_product(p_speed_diff.begin(), p_speed_diff.end(), p_speed_diff.begin(), 0.0);
     double p_speed_stdev = std::sqrt(p_speed_sq_sum / p_speeds.size());
 
-    std::cout << "---------- ITERATION " << i << " ----------\n"
+    std::cout << "---------- ITERATION " << iteration << " ----------\n"
               << "Average distance between boids: " << b_dist_mean << "\tStandard deviation: " << b_dist_stdev << "\n" //completely messed up
               << "Average speed of boids: " << b_speed_mean << "\tStandard deviation: " << b_speed_stdev << "\n\n"
               << "Average distance between boids and predators: " << p_dist_mean << "\tStandard deviation: " << p_dist_stdev << "\n"
@@ -153,5 +235,6 @@ int main()
     //   std::cout << item << "\n";
     // }
     }
+  ++ iteration;
   }
 }

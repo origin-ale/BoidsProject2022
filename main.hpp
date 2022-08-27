@@ -10,6 +10,8 @@
 #include <random>
 #include <ctime>
 #include <algorithm>
+#include <thread>
+#include <chrono>
 
 
 #endif
