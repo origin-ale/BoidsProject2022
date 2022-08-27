@@ -9,6 +9,7 @@ int main()
   double align_factor;
   double cohes_factor;
   int n_preds;
+  double sight_angle;
 
   if(debug){
     n_boids = 100;
@@ -56,14 +57,13 @@ int main()
       std::cin >> n_preds; 
     }
 
-    //view angle should also be input
   }
 
-  double sight_angle;
-  try{
-    std::cout << "Enter sight angle: "; std::cin >> sight_angle;
-  } catch(E_InvalidSightAngle) { while (sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) {
-    std::cout << "Invalid sight_angle entered. Please enter again: ";  std::cin >> sight_angle; }
+  std::cout << "Enter sight angle: "; 
+  std::cin >> sight_angle; //recommended values around 0.3
+  while(cohes_factor<0 || !(std::isfinite(sight_angle))) {
+    std::cout << "Invalid sight angle entered. Please enter again: ";  
+    std::cin >> sight_angle; 
   }
 
   //parameter assertions
@@ -72,6 +72,7 @@ int main()
   assert(align_factor>=0 && align_factor < 1 && std::isfinite(align_factor));
   assert(cohes_factor>=0 && std::isfinite(cohes_factor));
   assert(n_preds>=0 && std::isfinite(n_preds));
+  assert(sight_angle<=180 && std::isfinite(sight_angle));
 
   //fixed parameter initialization
   double window_x = 1500.;
