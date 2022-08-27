@@ -44,7 +44,7 @@ int main()
       boid_triangles[i].setOrigin(6.,6.);
       boid_triangles[i].setFillColor(sf::Color::Black);
       boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY());
-      boid_triangles[i].setRotation(- boids[i].getAngle().getDegrees());
+      boid_triangles[i].setRotation(90 - boids[i].getAngle().getDegrees());
       window.draw(boid_triangles[i]);
     }
     assert(boids.size() == static_cast<unsigned long>(n_boids));
@@ -62,7 +62,7 @@ int main()
       pred_triangles[i].setOrigin(6.,6.);
       pred_triangles[i].setFillColor(sf::Color::Red);
       pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
-      pred_triangles[i].setRotation(- predators[i].getAngle().getDegrees());
+      pred_triangles[i].setRotation(90 - predators[i].getAngle().getDegrees());
       window.draw(pred_triangles[i]);
     }
     assert(predators.size() == static_cast<unsigned long>(n_preds));
@@ -82,7 +82,6 @@ int main()
         future_boids[i].moveBoid(TIME_STEP);
       }
       boids = future_boids;
-      //std::this_thread::sleep_for(std::chrono::milliseconds(4));
 
       std::vector<Boid> future_predators = predators;
       for(int i=0; i<n_preds; ++i) {
@@ -95,16 +94,17 @@ int main()
       window.draw(background);
       window.draw(sim_zone);
       for(int i = 0; i < n_boids; ++i){
-        boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY());
-        boid_triangles[i].setRotation(- boids[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
+        boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY()); //make this work with any sim size
+        boid_triangles[i].setRotation(90 - boids[i].getAngle().getDegrees()); //Angle goes counterclockwise from right, SFML goes clockwise from top
         window.draw(boid_triangles[i]);
       }
       for(int i = 0; i < n_preds; ++i){
         pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
-        pred_triangles[i].setRotation(- predators[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
+        pred_triangles[i].setRotation(90 - predators[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
         window.draw(pred_triangles[i]);
       }
       window.display();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 }
 return 0;
