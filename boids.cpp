@@ -102,11 +102,11 @@ bool operator>(Angle const& lhs, Angle const& rhs){ //implemented in terms of th
 }
 
 Angle operator+(Angle const& lhs, Angle const& rhs){
-  return Angle(lhs + rhs);
+  return Angle(lhs.getDegrees() + rhs.getDegrees());
 }
 
 Angle operator-(Angle const& lhs, Angle const& rhs){
-  return Angle(lhs - rhs);
+  return Angle(lhs.getDegrees() + rhs.getDegrees());
 }
 
 std::ostream& operator<< (std::ostream& os, const Angle& angle) { //to print by just writing var name ("<< angle"), allows doctest to print wrong values
@@ -117,6 +117,14 @@ std::ostream& operator<< (std::ostream& os, const Angle& angle) { //to print by 
 //-----Definitions for Boid-----
 
 Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& spawn_agl): pos{spawn_pos}, vel{spawn_vel}, agl{spawn_agl} { //basic constructor
+  if(pos.getNorm2() > MAX_RADIUS2 || !(std::isfinite(pos.getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
+  assert(pos.getNorm2() <= MAX_RADIUS2);  //asserts to check invariants
+  assert(agl.getDegrees() <= 360.);
+  assert(agl.getDegrees() >= 0.);
+  assert(vel.getNorm2() <= MAX_SPEED2);
+}
+
+Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& spawn_agl, unsigned int flock): pos{spawn_pos}, vel{spawn_vel}, agl{spawn_agl}, flk{flock} { //flock constructor
   if(pos.getNorm2() > MAX_RADIUS2 || !(std::isfinite(pos.getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
   assert(pos.getNorm2() <= MAX_RADIUS2);  //asserts to check invariants
   assert(agl.getDegrees() <= 360.);
@@ -148,9 +156,9 @@ Angle Boid::getAngle() const{
   return agl;
 }
 
-
-
-//ADD CATCHES TO SET FUNCTIONS
+int Boid::getFlock() const{
+  return flk;
+}
 
 Position Boid::setPosition(Position const& newpos){
   pos = newpos;
@@ -213,9 +221,9 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     Velocity vj{boids[j].getVelocity()};
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if((aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) //only apply flight rules to boids that are within the sight range
-        && dij <= close_radius && dij != 0.) {    //and nearby, excluding self
-
+    if((aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) //only apply flight rules to boids that are within the sight range, ...
+        && dij <= close_radius && dij != 0. //... nearby excluding self ...
+        && boids[j].getFlock() == getFlock()){ //... and in same flock
       if (dij < sep_radius) {    //separation component due to nearby ordinary boids
         sum_pos_boid_x += pj.getX();
         sum_pos_boid_y += pj.getY();

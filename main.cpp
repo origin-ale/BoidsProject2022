@@ -2,8 +2,10 @@
 
 int main()
 {
-  bool debug = true; //debug flag, skips parameter input
+  bool debug = false; //debug flag, skips parameter input
 
+  int n_flocks;
+  std::vector<int> flock_pops;
   int n_boids;
   double sep_factor;
   double align_factor;
@@ -12,7 +14,8 @@ int main()
   double sight_angle;
 
   if(debug){
-    n_boids = 50;
+    n_flocks = 3;
+    flock_pops = {34,33,33};
     sep_factor = 0.5;
     align_factor = 0.1;
     cohes_factor = 0.3;
@@ -23,13 +26,24 @@ int main()
   else
   {
     //input parameters
-    std::cout << "Enter number of boids: "; 
-    std::cin >> n_boids;
-    while(n_boids<0 || !(std::isfinite(n_boids))){
-      std::cout << "Invalid number of boids entered. Please enter again: ";  
-      std::cin >> n_boids; 
+    std::cout << "Enter number of flocks: "; 
+    std::cin >> n_flocks;
+    while(n_flocks<0 || !(std::isfinite(n_flocks))){
+      std::cout << "Invalid number of flocks entered. Please enter again: ";  
+      std::cin >> n_flocks; 
     }
 
+    for(int i=0; i<n_flocks; ++i){
+      std::cout << "Enter number of boids in flock " << i+1 << ": ";
+      int input;
+      std:: cin >> input;
+      flock_pops.push_back(input);
+      while(flock_pops[i]<0 || !(std::isfinite(flock_pops[i]))){
+        std::cout << "Invalid number of boids entered. Please enter again: ";  
+        std::cin >> flock_pops[i]; 
+    }
+    }
+    
     std::cout << "Enter separation factor: "; 
     std::cin >> sep_factor; //recommended values around 0.5
     while(sep_factor<0 || !(std::isfinite(sep_factor))) {
@@ -65,6 +79,8 @@ int main()
       std::cin >> sight_angle; 
     }
   }
+
+  n_boids = std::accumulate(flock_pops.begin(), flock_pops.end(), 0);
 
   //parameter assertions
   assert(n_boids>=0 && std::isfinite(n_boids));
@@ -108,16 +124,23 @@ int main()
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
   //spawn boids
-  for(int i=0; i<n_boids; ++i) {
-    double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
-    Angle spawn_angle{360. * std::rand()/RAND_MAX};
-    Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
-    double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
-    Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
-    Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
-    boids.push_back(Boid(spawn_pos,spawn_vel));
+  for(int i=0; i<n_flocks; ++i) {
+    sf::Uint8 flock_color_r = std::rand()%150;
+    sf::Uint8 flock_color_g = std::rand()%150;
+    sf::Uint8 flock_color_b = std::rand()%150;
+    sf::Color flock_color{flock_color_r, flock_color_g, flock_color_b};
+    for(int j=0; j<flock_pops[i]; ++j){
+      double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
+      Angle spawn_angle{360. * std::rand()/RAND_MAX};
+      Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+      double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
+      Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
+      Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
+      boids.push_back(Boid(spawn_pos,spawn_vel, Angle(0.), i));
+      //std::cout << "Population of flock " << i+1 << ": " << j+1 << " //// Total population: " << boids.size() << "\n";
 
-    initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, sf::Color::Black, sf::Color(30, 200 ,30, 90), window, scale);
+      initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, flock_color, sf::Color(flock_color_r, flock_color_g, flock_color_b, 90), window, scale);
+    }
   }
   assert(boids.size() == static_cast<unsigned long>(n_boids));
 

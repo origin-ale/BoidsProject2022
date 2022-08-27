@@ -79,9 +79,11 @@ class Boid {  // each boid is one of these
   Position pos; // position of boid, with x and y coords
   Velocity vel; // velocity of boid, vector with x and y components
   Angle agl; // angle boid is facing, in degrees (counterclockwise from east)
+  unsigned int flk; //flock boid belongs to
 
   public:
-  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity. Spawns a non-predator boid 
+  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity. Spawns a boid in flock 0.
+  Boid(Position const&, Velocity const&, Angle const&, unsigned int); //spawns boid with specified attributes and flock
   Boid(); //no argument constructor, spawns an unrotated, still boid at (0,0)
   Boid(Position const&);  //position-only constructor, spawns an unrotated, still boid at specified position
   Boid(Position const&, Velocity const&);  //position-velocity constructor, spawns an unrotated boid at specified position with specified velocity
@@ -89,6 +91,7 @@ class Boid {  // each boid is one of these
   Position getPosition() const; //returns position of boid
   Velocity getVelocity() const; //returns velocity of boid
   Angle getAngle() const;  //returns angle of boid
+  int getFlock() const;
 
   Position moveBoid(double);  //moves boid by a step in time
   Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, double);  //applies flight rules to ordinary boid
