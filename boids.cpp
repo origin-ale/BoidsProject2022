@@ -179,10 +179,6 @@ Position Boid::moveBoid(double delta_t){
 
 
 Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
-  
-  if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
-  if (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) throw E_InvalidAlignmentFactor{};
-  if (cohes_factor<0 || !(std::isfinite(cohes_factor))) throw E_InvalidCohesionFactor{};
 
   //initialization of component wise sums of members of nearby boids OTHER THAN SELF
   double nboids_nearby{0.};
@@ -300,10 +296,6 @@ return vel;
 
 
 Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor) {
-  
-  if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
-  if (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) throw E_InvalidAlignmentFactor{};
-  if (cohes_factor<0 || !(std::isfinite(cohes_factor))) throw E_InvalidCohesionFactor{};
 
   double sum_vel_x{0.};
   double sum_vel_y{0.}; //used in alignment with ordinary boids

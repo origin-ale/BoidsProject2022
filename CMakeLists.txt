@@ -23,10 +23,8 @@ find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 # aggiungi l'eseguibile chain-sfml, da produrre a partire dai sorgenti indicati
 #   notare l'assenza degli header file, che pero' possono essere indicati
 add_executable(BoidsExecutable main.cpp boids.cpp)
-add_executable(BoidsGraphical graphics.cpp boids.cpp)
 # l'eseguibile dipende dalla libreria sfml-graphics e sue dipendenze
 target_link_libraries(BoidsExecutable PRIVATE sfml-graphics)
-target_link_libraries(BoidsGraphical PRIVATE sfml-graphics)
 
 #se il testing e' abilitato...
   #per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione

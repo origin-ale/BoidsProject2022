@@ -262,40 +262,12 @@ TEST_CASE("Testing velocity update"){
     std::vector<Boid> predators(3, Boid()); //initialize vector with still predators
 
     //test updateBoidVelocity
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., -0.5, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, -0.5, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, 1.1, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, 0.5, -0.5), E_InvalidCohesionFactor);
     CHECK_THROWS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., -0.5, -0.5, -0.5)); //multiple exceptions
 
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., INFINITY, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, INFINITY, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, 0.5, INFINITY), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., HUGE_VAL, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, HUGE_VAL, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, 0.5, HUGE_VAL), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., NAN, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, NAN, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., 0.5, 0.5, NAN), E_InvalidCohesionFactor);
     CHECK_THROWS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., INFINITY, HUGE_VAL, NAN)); //multiple exceptions
 
     //test updatePredatorVelocity
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., -0.5, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, -0.5, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, 1.1, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, 0.5, -0.5), E_InvalidCohesionFactor);
     CHECK_THROWS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., -0.5, -0.5, -0.5)); //multiple exceptions
-
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., INFINITY, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, INFINITY, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, 0.5, INFINITY), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., HUGE_VAL, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, HUGE_VAL, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, 0.5, HUGE_VAL), E_InvalidCohesionFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., NAN, 0.5, 0.5), E_InvalidSeparationFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, NAN, 0.5), E_InvalidAlignmentFactor);
-    CHECK_THROWS_AS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., 0.5, 0.5, NAN), E_InvalidCohesionFactor);
-    CHECK_THROWS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., INFINITY, HUGE_VAL, NAN)); //multiple exceptions
 
   }
   

@@ -20,9 +20,7 @@ int main()
     std::vector<sf::CircleShape> boid_triangles;
     std::vector<sf::CircleShape> pred_triangles;
     int n_boids = 50; //number of boids, to enter in input
-    if(n_boids<=0) throw E_InvalidNumberOfBoids{};
     int n_preds = 2; //number of predators, to enter in input
-    if(n_preds<0) throw E_InvalidNumberOfBoids{};
     double close_radius = 150.;
     double sep_radius = 25.; 
     double sep_factor = 0.5; //5E-3
