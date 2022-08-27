@@ -2,48 +2,62 @@
 
 int main()
 {
-  //input parameters
+  bool debug = true; //debug flag, skips parameter input
+
   int n_boids;
-  std::cout << "Enter number of boids: "; 
-  std::cin >> n_boids;
-  while(n_boids<0 || !(std::isfinite(n_boids))){
-    std::cout << "Invalid number of boids entered. Please enter again: ";  
-    std::cin >> n_boids; 
-  }
-
   double sep_factor;
-  std::cout << "Enter separation factor: "; 
-  std::cin >> sep_factor; //recommended values around 0.5
-  while(sep_factor<0 || !(std::isfinite(sep_factor))) {
-    std::cout << "Invalid separation factor entered. Please enter again: ";  
-    std::cin >> sep_factor; 
-  }
-  
   double align_factor;
-  std::cout << "Enter alignment factor: "; 
-  std::cin >> align_factor; //recommended values around 0.1
-  while(align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) {
-      std::cout << "Invalid alignment factor entered. Please enter again: ";  
-      std::cin >> align_factor; 
-  }
-
   double cohes_factor;
-  std::cout << "Enter cohesion factor: "; 
-  std::cin >> cohes_factor; //recommended values around 0.3
-  while(cohes_factor<0 || !(std::isfinite(cohes_factor))) {
-    std::cout << "Invalid cohesion factor entered. Please enter again: ";  
-    std::cin >> cohes_factor; 
-  }
-  
-  double n_preds;
-  std::cout << "Enter number of predators: "; 
-  std::cin >> n_preds;
-  while (n_preds<0 || !(std::isfinite(n_preds))) {
-    std::cout << "Invalid number of predators entered. Please enter again: ";  
-    std::cin >> n_preds; 
+  int n_preds;
+
+  if(debug){
+    n_boids = 100;
+    sep_factor = 0.5;
+    align_factor = 0.1;
+    cohes_factor = 0.3;
+    n_preds = 3;
   }
 
-  //view angle should also be input
+  else
+  {
+    //input parameters
+    std::cout << "Enter number of boids: "; 
+    std::cin >> n_boids;
+    while(n_boids<0 || !(std::isfinite(n_boids))){
+      std::cout << "Invalid number of boids entered. Please enter again: ";  
+      std::cin >> n_boids; 
+    }
+
+    std::cout << "Enter separation factor: "; 
+    std::cin >> sep_factor; //recommended values around 0.5
+    while(sep_factor<0 || !(std::isfinite(sep_factor))) {
+      std::cout << "Invalid separation factor entered. Please enter again: ";  
+      std::cin >> sep_factor; 
+    }
+    
+    std::cout << "Enter alignment factor: "; 
+    std::cin >> align_factor; //recommended values around 0.1
+    while(align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) {
+        std::cout << "Invalid alignment factor entered. Please enter again: ";  
+        std::cin >> align_factor; 
+    }
+
+    std::cout << "Enter cohesion factor: "; 
+    std::cin >> cohes_factor; //recommended values around 0.3
+    while(cohes_factor<0 || !(std::isfinite(cohes_factor))) {
+      std::cout << "Invalid cohesion factor entered. Please enter again: ";  
+      std::cin >> cohes_factor; 
+    }
+    
+    std::cout << "Enter number of predators: "; 
+    std::cin >> n_preds;
+    while (n_preds<0 || !(std::isfinite(n_preds))) {
+      std::cout << "Invalid number of predators entered. Please enter again: ";  
+      std::cin >> n_preds; 
+    }
+
+    //view angle should also be input
+  }
 
   //parameter assertions
   assert(n_boids>=0 && std::isfinite(n_boids));
@@ -89,12 +103,7 @@ int main()
     Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
     boids.push_back(Boid(spawn_pos,spawn_vel));
 
-    boid_triangles.push_back(sf::CircleShape(12.,3)); //a triangle is just a circle approxed with 3 points
-    boid_triangles[i].setOrigin(6.,6.);
-    boid_triangles[i].setFillColor(sf::Color::Black);
-    boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY());
-    boid_triangles[i].setRotation(90 - boids[i].getAngle().getDegrees());
-    window.draw(boid_triangles[i]);
+    initializeGraphic(boids[i], sf::CircleShape(12.,3.), boid_triangles, sf::Color::Black, window);
   }
   assert(boids.size() == static_cast<unsigned long>(n_boids));
 
@@ -108,12 +117,7 @@ int main()
     Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
     predators.push_back(Boid(spawn_pos,spawn_vel));
 
-    pred_triangles.push_back(sf::CircleShape(16.,3)); //a triangle is just a circle approxed with 3 points
-    pred_triangles[i].setOrigin(8.,8.);
-    pred_triangles[i].setFillColor(sf::Color::Red);
-    pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
-    pred_triangles[i].setRotation(90 - predators[i].getAngle().getDegrees());
-    window.draw(pred_triangles[i]);
+    initializeGraphic(predators[i], sf::CircleShape(16.,3.), pred_triangles, sf::Color(200, 50, 50), window);
   }
   assert(predators.size() == static_cast<unsigned long>(n_preds));
 
@@ -147,17 +151,14 @@ int main()
     window.draw(background);
     window.draw(sim_zone);
     for(int i = 0; i < n_boids; ++i){
-      boid_triangles[i].setPosition(boids[i].getPosition().getX(), boids[i].getPosition().getY()); //make this work with any sim size
-      boid_triangles[i].setRotation(90 - boids[i].getAngle().getDegrees()); //Angle goes counterclockwise from right, SFML goes clockwise from top
-      window.draw(boid_triangles[i]);
+      updateGraphic(boids[i], boid_triangles[i], window);
     }
     for(int i = 0; i < n_preds; ++i){
-      pred_triangles[i].setPosition(predators[i].getPosition().getX(), predators[i].getPosition().getY());
-      pred_triangles[i].setRotation(90 - predators[i].getAngle().getDegrees()); //Angle goes counterclockwise, SFML goes clockwise
-      window.draw(pred_triangles[i]);
+      updateGraphic(predators[i], pred_triangles[i], window);
     }
     window.display();
     std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));
+    //std::cout << "pos: (" << boids[0].getPosition().getX() << ", " << boids[0].getPosition().getY() << "); vel: (" << boids[0].getVelocity().getXVel() << ", " << boids[0].getVelocity().getYVel() << ")\n";
 
     if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
     //maybe implement in stats file?

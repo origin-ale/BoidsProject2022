@@ -79,7 +79,7 @@ class Boid {  // each boid is one of these
   Angle agl; // angle boid is facing, in degrees (counterclockwise from east)
 
   public:
-  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity
+  Boid(Position const&, Velocity const&, Angle const&); //simple constructor, takes spawn position, angle and velocity. Spawns a non-predator boid 
   Boid(); //no argument constructor, spawns an unrotated, still boid at (0,0)
   Boid(Position const&);  //position-only constructor, spawns an unrotated, still boid at specified position
   Boid(Position const&, Velocity const&);  //position-velocity constructor, spawns an unrotated boid at specified position with specified velocity

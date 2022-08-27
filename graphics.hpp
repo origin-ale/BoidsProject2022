@@ -2,8 +2,10 @@
 #define GRAPHICS_HPP
 
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include "boids.hpp"
 
-
-//define constructors for Vector2f
+void initializeGraphic(Boid const&, sf::CircleShape const&, std::vector<sf::CircleShape>&, sf::Color const&, sf::RenderWindow&); //Add the boid graphic to a vector and render it 
+void updateGraphic(Boid const&, sf::CircleShape&, sf::RenderWindow&);
 
 #endif
