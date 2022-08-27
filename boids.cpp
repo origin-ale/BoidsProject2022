@@ -101,6 +101,14 @@ bool operator>(Angle const& lhs, Angle const& rhs){ //implemented in terms of th
   return !(lhs.getDegrees() < rhs.getDegrees() || lhs.getDegrees() == rhs.getDegrees()) ;
 }
 
+Angle operator+(Angle const& lhs, Angle const& rhs){
+  return Angle(lhs + rhs);
+}
+
+Angle operator-(Angle const& lhs, Angle const& rhs){
+  return Angle(lhs - rhs);
+}
+
 std::ostream& operator<< (std::ostream& os, const Angle& angle) { //to print by just writing var name ("<< angle"), allows doctest to print wrong values
     os << angle.getDegrees();
     return os;
@@ -178,11 +186,12 @@ Position Boid::moveBoid(double delta_t){
 }
 
 
-Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor){
+Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, double sight_angle){
   
   if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
   if (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) throw E_InvalidAlignmentFactor{};
   if (cohes_factor<0 || !(std::isfinite(cohes_factor))) throw E_InvalidCohesionFactor{};
+  if (sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) throw E_InvalidSightAngle{};
 
   //initialization of component wise sums of members of nearby boids OTHER THAN SELF
   double nboids_nearby{0.};
@@ -209,7 +218,8 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     Velocity vj{boids[j].getVelocity()};
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if(aj.getDegrees() >= (agl.getDegrees() - 100.) && aj.getDegrees() <= (agl.getDegrees() + 100.) && dij <= close_radius && dij != 0.) {    //only apply flight rules to close boids in sight range, excluding self
+    if((aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) //only apply flight rules to boids that are within the sight range
+        && dij <= close_radius && dij != 0.) {    //and nearby, excluding self
 
       if (dij < sep_radius) {    //separation component due to nearby ordinary boids
         sum_pos_boid_x += pj.getX();
@@ -235,7 +245,7 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     Velocity pred_vk{predators[k].getVelocity()};
     Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
-    if(/*ak.getDegrees() >= (agl.getDegrees() - 100.) && ak.getDegrees() <= (agl.getDegrees() + 100.) && */pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
+    if(/*(ak.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || ak.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && */pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
       sum_pos_pred_x += pred_pk.getX();
       sum_pos_pred_y += pred_pk.getY();
       ++npreds_in_sep;
@@ -299,11 +309,12 @@ return vel;
 
 
 
-Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor) {
+Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, double sight_angle) {
   
   if (sep_factor<0 || !(std::isfinite(sep_factor))) throw E_InvalidSeparationFactor{};
   if (align_factor<0 || align_factor>=1 || !(std::isfinite(align_factor))) throw E_InvalidAlignmentFactor{};
   if (cohes_factor<0 || !(std::isfinite(cohes_factor))) throw E_InvalidCohesionFactor{};
+  if (sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) throw E_InvalidSightAngle{};
 
   double sum_vel_x{0.};
   double sum_vel_y{0.}; //used in alignment with ordinary boids
@@ -324,7 +335,7 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Velocity vj{boids[j].getVelocity()};
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if(/*aj.getDegrees() >= (agl.getDegrees() - 150.) && aj.getDegrees() <= (agl.getDegrees() + 150.) && */dij <= close_radius) {    //only apply flight rules to close boids
+    if(/*(aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && */dij <= close_radius) {    //only apply flight rules to close boids
 
     sum_pos_center_x += pj.getX();
     sum_pos_center_y += pj.getY();
@@ -344,7 +355,7 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Velocity pred_vk{predators[k].getVelocity()};
     Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
-    if(/*ak.getDegrees() >= (agl.getDegrees() - 150.) && ak.getDegrees() <= (agl.getDegrees() + 150.) && */pred_dik < sep_radius) {
+    if(/*(ak.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || ak.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && */pred_dik < sep_radius) {
       sum_pos_pred_x += pred_pk.getX();
       sum_pos_pred_y += pred_pk.getY();
       ++npreds_in_sep;
@@ -371,8 +382,8 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     cohes_vel_x = cohes_factor * (near_centermass_x - pos.getX());
     cohes_vel_y = cohes_factor * (near_centermass_y - pos.getY());
   }
-  Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
   Velocity align_vel{align_vel_x, align_vel_y};
+  Velocity cohes_vel{cohes_vel_x, cohes_vel_y};
 
   //edge velocity
   double edge_factor = 5.; //not in input, not supposed to be modified

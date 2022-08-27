@@ -28,6 +28,7 @@ int main()
     double sep_factor = 0.5; //5E-3
     double align_factor = 0.1;
     double cohes_factor = 0.3;
+    double sight_angle = 100.;
 
     double sim_radius = std::sqrt(MAX_RADIUS2);
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -78,14 +79,14 @@ int main()
 
       std::vector<Boid> future_boids = boids;
       for(int i=0; i<n_boids; ++i) {
-        future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+        future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
         future_boids[i].moveBoid(TIME_STEP);
       }
       boids = future_boids;
 
       std::vector<Boid> future_predators = predators;
       for(int i=0; i<n_preds; ++i) {
-        future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+        future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
         future_predators[i].moveBoid(TIME_STEP);
       }
       predators = future_predators;

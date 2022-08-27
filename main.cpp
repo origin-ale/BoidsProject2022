@@ -37,6 +37,13 @@ int main()
     std::cout << "Invalid number of predators entered. Please enter again: ";  std::cin >> n_preds; }
   }
 
+  double sight_angle;
+  try{
+    std::cout << "Enter sight angle: "; std::cin >> sight_angle;
+  } catch(E_InvalidSightAngle) { while (sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) {
+    std::cout << "Invalid sight_angle entered. Please enter again: ";  std::cin >> sight_angle; }
+  }
+
   double close_radius = 100.;
   double sep_radius = 1; 
   std::vector<Boid> boids;
@@ -71,14 +78,14 @@ int main()
     // }
     std::vector<Boid> future_boids = boids;
     for(int i=0; i<n_boids; ++i) {
-      future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+      future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
       future_boids[i].moveBoid(TIME_STEP);
     }
     boids = future_boids;
 
     std::vector<Boid> future_predators = predators;
     for(int i=0; i<n_preds; ++i) {
-      future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor);
+      future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
       future_predators[i].moveBoid(TIME_STEP);
     }
     predators = future_predators;

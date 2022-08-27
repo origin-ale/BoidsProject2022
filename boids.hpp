@@ -21,11 +21,12 @@ struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher th
 constexpr double TIME_STEP = 1./60.; //default time step for evolution (60 fps)
 struct E_InvalidMovementTime{}; //exception thrown for overly long times passed to moveBoid
 
+struct E_InvalidNumberOfBoids{}; //exception thrown for negative or null number of boids entered in input
 struct E_InvalidSeparationFactor{}; //exception thrown when separation factor is negative. Thrown immediately if invalid sep_factor is entered in input
 struct E_InvalidAlignmentFactor{}; //exception thrown when alignment factor is not in the range (0,1). Thrown immediately if invalid align_factor is entered in input
 struct E_InvalidCohesionFactor{}; //exception thrown when cohesion factor is negative. Thrown immediately if invalid cohes_factor is entered in input
+struct E_InvalidSightAngle{}; //exception thrown for sight angle higher than 180 degrees
 
-struct E_InvalidNumberOfBoids{}; //exception thrown for negative or null number of boids entered in input
 
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
 
@@ -77,6 +78,8 @@ class Angle{  //class to handle angles both in degrees (SFML) and radians (C++ t
 bool operator==(Angle const&, Angle const&);
 bool operator<(Angle const&, Angle const&);
 bool operator>(Angle const&, Angle const&);
+Angle operator+(Angle const&, Angle const&);
+Angle operator-(Angle const&, Angle const&);
 
 class Boid {  // each boid is one of these
   private:
@@ -95,8 +98,8 @@ class Boid {  // each boid is one of these
   Angle getAngle() const;  //returns angle of boid
 
   Position moveBoid(double);  //moves boid by a step in time
-  Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double);  //applies flight rules to ordinary boid
-  Velocity updatePredatorVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double);  //applies flight rules to predator
+  Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, double);  //applies flight rules to ordinary boid
+  Velocity updatePredatorVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, double);  //applies flight rules to predator
 
   Position setPosition(Position const&);
   Velocity setVelocity(Velocity const&);
