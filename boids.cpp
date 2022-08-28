@@ -116,7 +116,7 @@ std::ostream& operator<< (std::ostream& os, const Angle& angle) { //to print by 
 
 //-----Definitions for Boid-----
 
-Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& spawn_agl): pos{spawn_pos}, vel{spawn_vel}, agl{spawn_agl} { //basic constructor
+Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& spawn_agl): pos{spawn_pos}, vel{spawn_vel}, agl{spawn_agl}, flk{0} { //basic constructor
   if(pos.getNorm2() > MAX_RADIUS2 || !(std::isfinite(pos.getNorm2()))) throw E_OutOfBounds{}; // check object isn't out of bounds when spawned. If it is, raise exception.
   assert(pos.getNorm2() <= MAX_RADIUS2);  //asserts to check invariants
   assert(agl.getDegrees() <= 360.);
@@ -132,14 +132,14 @@ Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel, Angle const& sp
   assert(vel.getNorm2() <= MAX_SPEED2);
 }
 
-Boid::Boid(): pos{Position(0.,0.)}, vel{Velocity(0.,0.)}, agl{Angle(0.)} {} //no-argument constructor
+Boid::Boid(): pos{Position(0.,0.)}, vel{Velocity(0.,0.)}, agl{Angle(0.)}, flk{0} {} //no-argument constructor
 
-Boid::Boid(Position const& spawn_pos): pos{spawn_pos}, vel{Velocity(0.,0.)}, agl{Angle(0.)} //position-only constructor
+Boid::Boid(Position const& spawn_pos): pos{spawn_pos}, vel{Velocity(0.,0.)}, agl{Angle(0.)}, flk{0} //position-only constructor
 {
   assert(pos.getNorm2() <= MAX_RADIUS2);  //no need for other asserts, initialization values are known
 }
 
-Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel): pos{spawn_pos}, vel{spawn_vel}, agl{Angle(0.)} { //position-velocity constructor
+Boid::Boid(Position const& spawn_pos, Velocity const& spawn_vel): pos{spawn_pos}, vel{spawn_vel}, agl{Angle(0.)}, flk{0} { //position-velocity constructor
   assert(pos.getNorm2() <= MAX_RADIUS2); 
   assert(vel.getNorm2() <= MAX_SPEED2);
 }
@@ -333,7 +333,7 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Velocity vj{boids[j].getVelocity()};
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
-    if(/*(aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && */dij <= close_radius) {    //only apply flight rules to close boids
+    if((aj.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || aj.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && dij <= close_radius) {    //only apply flight rules to close boids
 
     sum_pos_center_x += pj.getX();
     sum_pos_center_y += pj.getY();
