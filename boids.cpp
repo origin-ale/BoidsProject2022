@@ -176,6 +176,11 @@ Angle Boid::setAngle(Angle const& newagl){
   return agl;
 }
 
+int Boid::setFlock(int const& newflk){
+  flk = newflk;
+  return flk;
+}
+
 
 Position Boid::moveBoid(double delta_t){
   if(!(std::isfinite(delta_t))) throw E_InvalidMovementTime{};

@@ -80,67 +80,67 @@ TEST_CASE("Testing boids"){ //test boid constructors and gets work correctly
 TEST_CASE("Testing bounds"){  // try getting boid out of bounds
 //all of these CHECK_THROWS might not work, the exceptions get caught by the constructors. In that case, change them to check for the sanitized values
   SUBCASE("Finite OoB"){
-    CHECK_THROWS_AS(Boid toofar_boid = Boid(Position(MAX_RADIUS2,MAX_RADIUS2), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(MAX_RADIUS2,MAX_RADIUS2), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
   }
 
   SUBCASE("Overflowing OoB"){
-    CHECK_THROWS_AS(Boid hugefar_boid1 = Boid(Position(HUGE_VAL,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid hugefar_boid2 = Boid(Position(0.,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid hugefar_boid3 = Boid(Position(HUGE_VAL,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(HUGE_VAL,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(0.,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(HUGE_VAL,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
   }
 
   SUBCASE("Infinite OoB"){ //might not work
-    CHECK_THROWS_AS(Boid inffar_boid1 = Boid(Position(INFINITY,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid inffar_boid2 = Boid(Position(0.,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid inffar_boid3 = Boid(Position(INFINITY,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(INFINITY,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(0.,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(INFINITY,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
   } 
 
   SUBCASE("NaN OoB"){ //probably won't work
-    CHECK_THROWS_AS(Boid nanfar_boid1 = Boid(Position(NAN,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid nanfar_boid2 = Boid(Position(0.,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid nanfar_boid3 = Boid(Position(NAN,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(NAN,0.), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(0.,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(NAN,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
   } 
 
   SUBCASE("Mixed OoB"){
-    CHECK_THROWS_AS(Boid mixfar_boid1 = Boid(Position(INFINITY,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid mixfar_boid2 = Boid(Position(HUGE_VAL,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid mixfar_boid3 = Boid(Position(INFINITY,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid mixfar_boid4 = Boid(Position(NAN,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid mixfar_boid5 = Boid(Position(HUGE_VAL,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
-    CHECK_THROWS_AS(Boid mixfar_boid6 = Boid(Position(NAN,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(INFINITY,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(HUGE_VAL,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(INFINITY,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(NAN,INFINITY), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(HUGE_VAL,NAN), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
+    CHECK_THROWS_AS(Boid(Position(NAN,HUGE_VAL), Velocity(0.,0.), Angle(0.)), E_OutOfBounds);
   } 
 }
 
 TEST_CASE("Testing speed limit"){ // try getting boid to speed higher than MAX_SPEED
 
   SUBCASE("Finite speed break"){
-    CHECK_THROWS_AS(Boid toofast_boid = Boid(Position(0.,0.), Velocity(MAX_SPEED2,MAX_SPEED2), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(MAX_SPEED2,MAX_SPEED2), Angle(0.)), E_SpeedTooHigh);
   }
 
   SUBCASE("Overflowing speed break"){
-    CHECK_THROWS_AS(Boid hugefast_boid1 = Boid(Position(0.,0.), Velocity(HUGE_VAL,0.), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid hugefast_boid2 = Boid(Position(0.,0.), Velocity(0.,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid hugefast_boid3 = Boid(Position(0.,0.), Velocity(HUGE_VAL,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(HUGE_VAL,0.), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(HUGE_VAL,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
   }
 
   SUBCASE("Infinite speed break"){
-    CHECK_THROWS_AS(Boid inffast_boid1 = Boid(Position(0.,0.), Velocity(INFINITY,0.), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid inffast_boid2 = Boid(Position(0.,0.), Velocity(0.,INFINITY), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid inffast_boid3 = Boid(Position(0.,0.), Velocity(INFINITY,INFINITY), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(INFINITY,0.), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,INFINITY), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(INFINITY,INFINITY), Angle(0.)), E_SpeedTooHigh);
   }
 
   SUBCASE("NaN speed break"){
-    CHECK_THROWS_AS(Boid nanfast_boid1 = Boid(Position(0.,0.), Velocity(NAN,0.), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid nanfast_boid2 = Boid(Position(0.,0.), Velocity(0.,NAN), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid nanfast_boid3 = Boid(Position(0.,0.), Velocity(NAN,NAN), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(NAN,0.), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,NAN), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(NAN,NAN), Angle(0.)), E_SpeedTooHigh);
   }
   SUBCASE("Mixed speed break"){
-    CHECK_THROWS_AS(Boid mixfast_boid1 = Boid(Position(0.,0.), Velocity(INFINITY,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid mixfast_boid2 = Boid(Position(0.,0.), Velocity(HUGE_VAL,INFINITY), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid mixfast_boid3 = Boid(Position(0.,0.), Velocity(INFINITY,NAN), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid mixfast_boid4 = Boid(Position(0.,0.), Velocity(NAN,INFINITY), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid mixfast_boid5 = Boid(Position(0.,0.), Velocity(HUGE_VAL,NAN), Angle(0.)), E_SpeedTooHigh);
-    CHECK_THROWS_AS(Boid mixfast_boid6 = Boid(Position(0.,0.), Velocity(NAN,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(INFINITY,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(HUGE_VAL,INFINITY), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(INFINITY,NAN), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(NAN,INFINITY), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(HUGE_VAL,NAN), Angle(0.)), E_SpeedTooHigh);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(NAN,HUGE_VAL), Angle(0.)), E_SpeedTooHigh);
   }
 }
 
@@ -159,9 +159,9 @@ TEST_CASE("Testing angles"){  //try getting boids to out-of-range angles and see
     CHECK(overrot_boid.getAngle().getCosine() == doctest::Approx(0.));
   }
   SUBCASE("Testing infinite angles"){ //these should throw and get set to 0
-    CHECK_THROWS_AS(Boid infrot_boid = Boid(Position(0.,0.), Velocity(0.,0.), Angle(INFINITY)), E_InvalidAngle);
-    CHECK_THROWS_AS(Boid hugerot_boid = Boid(Position(0.,0.), Velocity(0.,0.), Angle(HUGE_VAL)), E_InvalidAngle);
-    CHECK_THROWS_AS(Boid nanrot_boid = Boid(Position(0.,0.), Velocity(0.,0.), Angle(NAN)), E_InvalidAngle);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,0.), Angle(INFINITY)), E_InvalidAngle);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,0.), Angle(HUGE_VAL)), E_InvalidAngle);
+    CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,0.), Angle(NAN)), E_InvalidAngle);
   }
 }
 
@@ -414,6 +414,31 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(179.855));
 
 
+    //updateBoidVelocity, different flocks
+    velocity_boid.setFlock(1);
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
+    std::vector<Boid> boids8;
+      boids8.push_back(velocity_boid);
+      boids8.push_back(Boid(Position(1.5, 1.5), Velocity(1., -1.), Angle(225.), 2));
+      boids8.push_back(Boid(Position(0., 1.), Velocity(0., 10.), Angle(15.), 3));
+    velocity_boid.updateBoidVelocity(boids8, predators0, 100., 1., 100., 0.5, 0.5, 180.);
+    CHECK(velocity_boid.getVelocity().getXVel() == 0.); //check other flocks' boids are ignored
+    CHECK(velocity_boid.getVelocity().getYVel() == 0.);
+
+      boids8.push_back(Boid(Position(1., 1.5), Velocity(1., -1.), Angle(90.), 1)); //add boid in same flock
+    velocity_boid.updateBoidVelocity(boids8, predators0, 100., 1., 100., 0.5, 0.5, 180.);
+    CHECK(velocity_boid.getVelocity().getXVel() == 0.5); //check new boid is seen
+    CHECK(velocity_boid.getVelocity().getYVel() == -50.25);
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(270.570));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(270.)); //change angle
+    velocity_boid.updateBoidVelocity(boids8, predators0, 100., 1., 100., 0.5, 0.5, 60.);
+    CHECK(velocity_boid.getVelocity().getXVel() == 0.); //check same flock's boid is out of sight range
+    CHECK(velocity_boid.getVelocity().getYVel() == 0.);
+
+
     //updatePredatorVelocity, no sight limit
     velocity_boid.setPosition(Position(1., 1.));
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
@@ -430,29 +455,29 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator heads towards opposite direction
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    std::vector<Boid> boids8;
-      boids8.push_back(Boid(Position(1.5, 1.5)));
-    velocity_boid.updatePredatorVelocity(predators0, boids8, 100., 1., 100., 0.5, 0.5, 180.);
+    std::vector<Boid> boids9;
+      boids9.push_back(Boid(Position(1.5, 1.5)));
+    velocity_boid.updatePredatorVelocity(predators0, boids9, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 0.25); //check cohes_vel due to close boid is added
     CHECK(velocity_boid.getVelocity().getYVel() == 0.25);
     CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator chases the boid
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    std::vector<Boid> boids9;
-      boids9.push_back(Boid(Position(1.5, 1.5), Velocity(1., -1.)));
-    velocity_boid.updatePredatorVelocity(predators0, boids9, 100., 1., 100., 0.5, 0.5, 180.);
+    std::vector<Boid> boids10;
+      boids10.push_back(Boid(Position(1.5, 1.5), Velocity(1., -1.)));
+    velocity_boid.updatePredatorVelocity(predators0, boids10, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 0.75); //check align_vel and cohes_vel due to close boid are added
     CHECK(velocity_boid.getVelocity().getYVel() == -0.25);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(341.565));
     
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 180.);
+    velocity_boid.updatePredatorVelocity(predators1, boids10, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 50.75); //check with one other predator and one boid
     CHECK(velocity_boid.getVelocity().getYVel() == 49.75);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(44.430));
 
     velocity_boid.setVelocity(Velocity(10., -10.)); //test with initial velocity != 0
-    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 180.);
+    velocity_boid.updatePredatorVelocity(predators1, boids10, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 55.75);
     CHECK(velocity_boid.getVelocity().getYVel() == 44.75);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(38.754));
@@ -461,18 +486,17 @@ TEST_CASE("Testing velocity update"){
     //updatePredatorVelocity, sight angle
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     velocity_boid.setAngle(Angle(0.)); //reset angle
-    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 90.); //one sep boid in sight
+    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 90.); //one sep boid in sight
     CHECK(velocity_boid.getVelocity().getXVel() == 0.25);
     CHECK(velocity_boid.getVelocity().getYVel() == 0.25);
     CHECK(velocity_boid.getAngle().getDegrees() == 45.);
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     velocity_boid.setAngle(Angle(135.)); //reset angle
-    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 100.); //one sep boid and one other predator in sight
+    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 100.); //one sep boid and one other predator in sight
     CHECK(velocity_boid.getVelocity().getXVel() == 50.25);
     CHECK(velocity_boid.getVelocity().getYVel() == 50.25);
     CHECK(velocity_boid.getAngle().getDegrees() == 45.);
-
 
   }
 }

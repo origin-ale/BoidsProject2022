@@ -100,5 +100,6 @@ class Boid {  // each boid is one of these
   Position setPosition(Position const&);
   Velocity setVelocity(Velocity const&);
   Angle setAngle(Angle const&);
+  int setFlock(int const&);
 };
 #endif

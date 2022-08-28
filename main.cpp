@@ -74,7 +74,7 @@ int main()
 
     std::cout << "Enter sight angle: "; 
     std::cin >> sight_angle;
-    while(cohes_factor<0 || !(std::isfinite(sight_angle))) {
+    while(sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) {
       std::cout << "Invalid sight angle entered. Please enter again: ";  
       std::cin >> sight_angle; 
     }
