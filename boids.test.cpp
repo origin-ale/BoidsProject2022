@@ -234,13 +234,9 @@ TEST_CASE("Testing movement"){ //tests move and set functions
   }
 
   SUBCASE("Moving out of bounds"){
-    movement_boid = Boid(Position(0.,0.), Velocity(std::sqrt(MAX_SPEED2),0.)); //put boid in origin, with maximum allowed speed
-    movement_boid.moveBoid((std::sqrt(MAX_RADIUS2)/std::sqrt(MAX_SPEED2)) + 10); //move out of bounds in one large step
-    CHECK(movement_boid.getPosition() == Position(0.,0.)); //should not have moved
-
     movement_boid = Boid(Position(std::sqrt(MAX_RADIUS2) - 0.5, 0.), Velocity(1.,0.));  //put boid near edge
     movement_boid.moveBoid(1.); //move out of bounds in small step from near edge
-    CHECK(movement_boid.getPosition() == Position(std::sqrt(MAX_RADIUS2) - 0.5, 0.)); //should not have moved
+    CHECK(movement_boid.getPosition() == Position(std::sqrt(MAX_RADIUS2 - 1), 0.));
   }
 
   SUBCASE("Passing nonfinites to moveBoid"){
@@ -257,21 +253,6 @@ TEST_CASE("Testing movement"){ //tests move and set functions
 TEST_CASE("Testing velocity update"){
   Boid velocity_boid = Boid(); //spawn still boid
   
-  SUBCASE("Testing input exceptions"){
-    std::vector<Boid> boids(10, Boid()); //initialize vector with still boids
-    std::vector<Boid> predators(3, Boid()); //initialize vector with still predators
-
-    //test updateBoidVelocity
-    CHECK_THROWS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., -0.5, -0.5, -0.5)); //multiple exceptions
-
-    CHECK_THROWS(velocity_boid.updateBoidVelocity(boids, predators, 100., 1., INFINITY, HUGE_VAL, NAN)); //multiple exceptions
-
-    //test updatePredatorVelocity
-    CHECK_THROWS(velocity_boid.updatePredatorVelocity(predators, boids, 100., 1., -0.5, -0.5, -0.5)); //multiple exceptions
-
-  }
-  
-
   SUBCASE("Intended behavior"){    //AGGIUNGERE TEST SULL'ANGOLO DI VISTA
     
     //updateBoidVelocity, no predators, no sight limit
@@ -369,12 +350,12 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-10.5));
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(332.822));
 
-    velocity_boid.setPosition(Position(530., 530.)); //bring boid near edge
+    velocity_boid.setPosition(Position(707., 707.)); //bring boid near edge
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
     velocity_boid.setAngle(Angle(0.)); //reset angle
     velocity_boid.updateBoidVelocity(boids5, predators0, 100., 1., 100., 0.5, 0.5, 180.); //no close boids, vel == edge_vel
-    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(-1.3363)); //near edge edge_vel becomes significant
-    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-1.3363));
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(-2.0345)); //near edge edge_vel becomes significant
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(-2.0345));
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(225.)); //boid heads towards opposite direction
 
 
