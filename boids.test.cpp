@@ -379,6 +379,40 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(99.75));
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(89.856));
 
+    
+    //update updateBoidVelocity, sight angle
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
+    std::vector<Boid> boids7;
+      boids7.push_back(velocity_boid);
+      boids7.push_back(Boid(Position(1.3, 1.))); //sep boid in sight
+      boids7.push_back(Boid(Position(2., 1.3))); //non-sep, close boid in sight
+      boids7.push_back(Boid(Position(0.9, 1.))); //sep boid, not in sight
+    velocity_boid.updateBoidVelocity(boids7, predators0, 100., 1., 100., 0.5, 0.5, 45.); //0 is in sight range
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(-29.675)); //check third boid is not seen
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(0.0750));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(179.855));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
+    velocity_boid.updateBoidVelocity(boids7, predators1, 100., 1., 100., 0.5, 0.5, 45.); //0 is in sight range
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(20.325)); //check predator is seen, though not in sight range
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(50.075));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(67.908));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(90.)); //test with different initial angle
+    velocity_boid.updateBoidVelocity(boids7, predators0, 100., 1., 100., 0.5, 0.5, 45.); //0 is not in sight range
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(0.)); //check no boid is seen
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(0.));
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(90.)); //test with different initial angle
+    velocity_boid.updateBoidVelocity(boids7, predators0, 100., 1., 100., 0.5, 0.5, 100.); //0 is in sight range
+    CHECK(velocity_boid.getVelocity().getXVel() == doctest::Approx(-19.8)); //check no boid is seen
+    CHECK(velocity_boid.getVelocity().getYVel() == doctest::Approx(0.05));
+    CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(179.855));
+
 
     //updatePredatorVelocity, no sight limit
     velocity_boid.setPosition(Position(1., 1.));
@@ -396,33 +430,49 @@ TEST_CASE("Testing velocity update"){
     CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator heads towards opposite direction
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    std::vector<Boid> boids7;
-      boids7.push_back(Boid(Position(1.5, 1.5)));
-    velocity_boid.updatePredatorVelocity(predators0, boids7, 100., 1., 100., 0.5, 0.5, 180.);
+    std::vector<Boid> boids8;
+      boids8.push_back(Boid(Position(1.5, 1.5)));
+    velocity_boid.updatePredatorVelocity(predators0, boids8, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 0.25); //check cohes_vel due to close boid is added
     CHECK(velocity_boid.getVelocity().getYVel() == 0.25);
     CHECK(velocity_boid.getAngle().getDegrees() == 45.); //check predator chases the boid
 
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    std::vector<Boid> boids8;
-      boids8.push_back(Boid(Position(1.5, 1.5), Velocity(1., -1.)));
-    velocity_boid.updatePredatorVelocity(predators0, boids8, 100., 1., 100., 0.5, 0.5, 180.);
+    std::vector<Boid> boids9;
+      boids9.push_back(Boid(Position(1.5, 1.5), Velocity(1., -1.)));
+    velocity_boid.updatePredatorVelocity(predators0, boids9, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 0.75); //check align_vel and cohes_vel due to close boid are added
     CHECK(velocity_boid.getVelocity().getYVel() == -0.25);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(341.565));
     
     velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
-    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 180.);
+    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 50.75); //check with one other predator and one boid
     CHECK(velocity_boid.getVelocity().getYVel() == 49.75);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(44.430));
 
     velocity_boid.setVelocity(Velocity(10., -10.)); //test with initial velocity != 0
-    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 180.);
+    velocity_boid.updatePredatorVelocity(predators1, boids9, 100., 1., 100., 0.5, 0.5, 180.);
     CHECK(velocity_boid.getVelocity().getXVel() == 55.75);
     CHECK(velocity_boid.getVelocity().getYVel() == 44.75);
     CHECK(velocity_boid.getAngle().getDegrees() == doctest::Approx(38.754));
 
+
+    //updatePredatorVelocity, sight angle
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(0.)); //reset angle
+    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 90.); //one sep boid in sight
+    CHECK(velocity_boid.getVelocity().getXVel() == 0.25);
+    CHECK(velocity_boid.getVelocity().getYVel() == 0.25);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.);
+
+    velocity_boid.setVelocity(Velocity(0., 0.)); //reset velocity
+    velocity_boid.setAngle(Angle(135.)); //reset angle
+    velocity_boid.updatePredatorVelocity(predators1, boids8, 100., 1., 100., 0.5, 0.5, 100.); //one sep boid and one other predator in sight
+    CHECK(velocity_boid.getVelocity().getXVel() == 50.25);
+    CHECK(velocity_boid.getVelocity().getYVel() == 50.25);
+    CHECK(velocity_boid.getAngle().getDegrees() == 45.);
+
+
   }
- 
 }
