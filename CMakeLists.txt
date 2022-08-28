@@ -19,20 +19,24 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-
 # richiedi il componente graphics della libreria SFML, versione 2.5
 #   le dipendenze vengono identificate automaticamente
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
+find_package(ROOT COMPONENTS Core Hist HistPainter REQUIRED)
 
-# aggiungi l'eseguibile chain-sfml, da produrre a partire dai sorgenti indicati
+# aggiungi l'eseguibile BoidsExecutable, da produrre a partire dai sorgenti indicati
 #   notare l'assenza degli header file, che pero' possono essere indicati
-add_executable(BoidsExecutable main.cpp boids.cpp graphics.cpp SelbaWard/Ring.cpp)
-# l'eseguibile dipende dalla libreria sfml-graphics e sue dipendenze
+add_executable(BoidsExecutable main.cpp boids.cpp graphics.cpp SelbaWard/Ring.cpp stats.cpp)
+
+# l'eseguibile dipende dalla libreria sfml-graphics e sue dipendenze e da ROOT e sue dipendenze
 target_link_libraries(BoidsExecutable PRIVATE sfml-graphics)
+target_link_libraries(BoidsExecutable PRIVATE ROOT::Core ROOT::Hist ROOT::HistPainter)
 
 #se il testing e' abilitato...
   #per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile chain.t, da produrre a partire dai sorgenti indicati
-  add_executable(BoidsTest.t boids.test.cpp boids.cpp graphics.cpp SelbaWard/Ring.cpp)
+  add_executable(BoidsTest.t boids.test.cpp boids.cpp graphics.cpp SelbaWard/Ring.cpp stats.cpp)
   target_link_libraries(BoidsTest.t PRIVATE sfml-graphics)
+  target_link_libraries(BoidsTest.t PRIVATE ROOT::Core ROOT::Hist ROOT::HistPainter)
   # aggiungi l'eseguibile chain.t alla lista dei test, con nome chain.t
   add_test(NAME BoidsTest.t COMMAND BoidsTest.t)
 
