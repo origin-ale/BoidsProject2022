@@ -10,7 +10,7 @@ TEST_CASE("Testing position and velocity gets"){ //check a bunch of positions an
   Position pos1 = Position(2.,0.);  //second component = 0
   Position pos2 = Position(0.,5.);  //first component = 0
   Position pos3 = Position(0.,0.);  //both components = 0
-  Position pos4 = Position(3.,4.);  //pitagorean triple
+  Position pos4 = Position(3.,4.);  //pythagorean triple
   Position pos5 = Position(8.,8.);  //whole comoponents
   Position pos6 = Position(102.56,568.29);  //fractional components
 
