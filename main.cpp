@@ -2,6 +2,10 @@
 
 int main()
 {
+  time_t begin_time;
+  time(&begin_time);
+  tm* bgn_tm = localtime(&begin_time);
+
   bool debug = true; //debug flag, skips parameter input
 
   int n_flocks;
@@ -127,7 +131,6 @@ int main()
   TCanvas histo_canvas{"canvas", "Boid statistics", - 1, 0, 600, 600};
   histo_canvas.Divide(2,2);
 
-
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
   //spawn boids
@@ -165,6 +168,7 @@ int main()
   assert(predators.size() == static_cast<unsigned long>(n_preds));
 
   int iteration = 0; //iteration counter
+  int printing = 1;
   int update_time_ms = 16; //time between updates, in milliseconds
   int print_sep_ms = 5000; //time between stat prints, in milliseconds
 
@@ -228,7 +232,17 @@ int main()
       makeHisto(boidpred_distances, "Boid-predator distances", "Distance stats", std::sqrt(MAX_RADIUS2), histo_canvas, 3);
       makeHisto(pred_speeds, "Predator speeds", "Speed stats", 0.01 * std::sqrt(MAX_SPEED2), histo_canvas, 4);
 
-      histo_canvas.Print("latest_histo.pdf");
+      
+      std::filesystem::create_directory("./Histograms");
+      std::string histo_root = "Histograms/Histo";
+      char begintime_string[50];
+      strftime(begintime_string, 25, "%y%m%d_%H%M%S_", bgn_tm);
+      std::string histo_time = begintime_string;
+      std::string histo_printing = std::to_string(printing);
+      std::string histo_format = ".pdf";
+      std::string histo_name = histo_root + histo_time + histo_printing + histo_format;
+      histo_canvas.Print(histo_name.c_str());
+      ++printing;
     }
 
     ++iteration;
