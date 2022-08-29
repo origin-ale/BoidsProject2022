@@ -22,37 +22,43 @@ struct E_InvalidMovementTime{}; //exception thrown for overly long times passed 
 
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
 
-class Position { //class to handle object positions
-  double x=0.; //x coord of object (0 is center)
-  double y=0.; //y coord of object (0 is center)
+class Coords {  //abstract base class for x and y coordinates
+  protected: private:
+  double x=0.;
+  double y=0.;
 
   public:
-  explicit Position(double, double);  //simple constructor, takes x and y coords 
+  explicit Coords(double, double);
 
-  double getX() const;  //returns X position
-  double getY() const;  //returns Y position
-  double getNorm2()const; //returns velocity norm squared
+  virtual double getX() const;  //returns X position
+  virtual double getY() const;  //returns Y position
+  virtual double getNorm2() const; //returns norm squared
+};
+
+class Position : public Coords { //derived class to handle object positions
+  double x=0.;
+  double y=0.;
+
+  public:
+  explicit Position(double, double);  //simple constructor, takes x and y position coords
+
 };
 
 bool operator==(Position const&, Position const&);
 Position operator-(Position const&, Position const&);
 
-class Velocity { //class to handle object velocities
-  double vx=0.; //x velocity of object
-  double vy=0.; //y velocity of object
+class Velocity : public Coords { //derived class to handle object velocities
+  double x=0.;
+  double y=0.;
 
   public:
   explicit Velocity(double, double); //simple constructor, takes x and y velocities
 
-  double getXVel() const; //returns X velocity
-  double getYVel() const; //returns Y velocity
-  double getNorm2() const; //returns velocity norm squared
 };
 
 bool operator==(Velocity const&, Velocity const&);
 Velocity operator+(Velocity const&, Velocity const&);
 
-//maybe use named constructors to build both in degs and rads
 class Angle{  //class to handle angles both in degrees (SFML) and radians (C++ trig functions)
   private:
   double angle=0.;  //angle in degrees
@@ -70,6 +76,8 @@ class Angle{  //class to handle angles both in degrees (SFML) and radians (C++ t
 bool operator==(Angle const&, Angle const&);
 bool operator<(Angle const&, Angle const&);
 bool operator>(Angle const&, Angle const&);
+bool operator<=(Angle const&, Angle const&);
+bool operator>=(Angle const&, Angle const&);
 Angle operator+(Angle const&, Angle const&);
 Angle operator-(Angle const&, Angle const&);
 
@@ -90,7 +98,7 @@ class Boid {  // each boid is one of these
   Position getPosition() const; //returns position of boid
   Velocity getVelocity() const; //returns velocity of boid
   Angle getAngle() const;  //returns angle of boid
-  int getFlock() const;
+  int getFlock() const; //returns number of boid's flock
 
   Position moveBoid(double);  //moves boid by a step in time
   Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, Angle = Angle(180.));  //applies flight rules to ordinary boid

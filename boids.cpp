@@ -1,20 +1,24 @@
 #include "boids.hpp"
 
-//-----Definitions for Position-----
 
-Position::Position(double x_coord, double y_coord):x{x_coord}, y{y_coord} {} // Position constructor
+Coords::Coords(double x_, double y_):x{x_}, y{y_} {} //abstract base class
 
-double Position::getX() const{
+double Coords::getX() const{
   return x;
 }
 
-double Position::getY() const{
+double Coords::getY() const{
   return y;
 }
 
-double Position::getNorm2() const{ // returns norm^2 of position
+double Coords::getNorm2() const{
   return x * x + y * y;
 }
+
+
+//-----Definitions for Position-----
+
+Position::Position(double x_, double y_) : Coords{x_, y_} {} // Position constructor
 
 bool operator==(Position const& lhs, Position const& rhs){
   return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
@@ -24,31 +28,20 @@ Position operator-(Position const& lhs, Position const& rhs){
   return Position(lhs.getX()-rhs.getX(), lhs.getY()-rhs.getY());
 }
 
+
 //-----Definitions for Velocity-----
 
-Velocity::Velocity(double x_vel, double y_vel):vx{x_vel}, vy{y_vel} { // Velocity constructor
+Velocity::Velocity(double x_, double y_) : Coords{x_, y_} { // Velocity constructor
   if(getNorm2() > MAX_SPEED2 || !(std::isfinite(getNorm2()))) throw E_SpeedTooHigh{}; // check object isn't over speed limit when spawned. If it is, raise exception.
   assert(getNorm2() <= MAX_SPEED2); // terminate if somehow still greater
 }
 
-double Velocity::getXVel() const{
-  return vx;
-}
-
-double Velocity::getYVel() const{
-  return vy;
-}
-
-double Velocity::getNorm2() const{ // returns norm^2 of velocity
-  return vx * vx + vy * vy;
-}
-
 bool operator==(Velocity const& lhs, Velocity const& rhs){
-  return lhs.getXVel() == rhs.getXVel() && lhs.getYVel() == rhs.getYVel();
+  return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
 }
 
 Velocity operator+=(Velocity& lhs, Velocity const& rhs){              
-    return lhs = Velocity(lhs.getXVel() + rhs.getXVel(), lhs.getYVel() + rhs.getYVel());
+    return lhs = Velocity(lhs.getX() + rhs.getX(), lhs.getY() + rhs.getY());
 }
 
 Velocity operator+(Velocity const& lhs, Velocity const& rhs){ 
@@ -56,9 +49,10 @@ Velocity operator+(Velocity const& lhs, Velocity const& rhs){
     return temp += rhs;
 }
 
+
 //-----Definitions for Angle-----
 
-Angle::Angle(double raw_angle){ //CHECK THROWING ORDER
+Angle::Angle(double raw_angle){
   double temp; //temp variable to make throw statement more readable
   if(raw_angle > 360.) raw_angle = std::remainder(raw_angle, 360.);  //if remainder method is applicable use it
   else if(raw_angle < 0.){  
@@ -99,6 +93,14 @@ bool operator<(Angle const& lhs, Angle const& rhs){
 
 bool operator>(Angle const& lhs, Angle const& rhs){ //implemented in terms of the other two, standard procedure
   return !(lhs.getDegrees() < rhs.getDegrees() || lhs.getDegrees() == rhs.getDegrees()) ;
+}
+
+bool operator<=(Angle const& lhs, Angle const& rhs){
+  return (lhs < rhs || lhs == rhs);
+}
+
+bool operator>=(Angle const& lhs, Angle const& rhs){
+  return (lhs > rhs || lhs == rhs);
 }
 
 Angle operator+(Angle const& lhs, Angle const& rhs){
@@ -185,14 +187,14 @@ int Boid::setFlock(int const& newflk){
 Position Boid::moveBoid(double delta_t){
   if(!(std::isfinite(delta_t))) throw E_InvalidMovementTime{};
 
-  double future_x = pos.getX() + vel.getXVel() * delta_t;
-  double future_y = pos.getY() + vel.getYVel() * delta_t;
+  double future_x = pos.getX() + vel.getX() * delta_t;
+  double future_y = pos.getY() + vel.getY() * delta_t;
   try {
     setPosition(Position(future_x, future_y));
   } catch(E_OutOfBounds){ 
     Angle pos_angle{360 * std::atan2(pos.getY(),pos.getX()) / (2 * pi)};
     setPosition(Position(pos_angle.getCosine() * std::sqrt(MAX_RADIUS2-1), pos_angle.getSine() * std::sqrt(MAX_RADIUS2-1)));
-    setVelocity(Velocity(- vel.getXVel(), - vel.getYVel()));
+    setVelocity(Velocity(- vel.getX(), - vel.getY()));
   }
   assert(pos.getNorm2() <= MAX_RADIUS2);
   return pos;
@@ -201,7 +203,7 @@ Position Boid::moveBoid(double delta_t){
 
 Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, Angle sight_angle){
 
-  //initialization of component wise sums of members of nearby boids OTHER THAN SELF
+  //initialization of component wise sums of members of nearby boids other than self
   double nboids_nearby{0.};
   
   double sum_pos_boid_x{0.}; 
@@ -236,14 +238,15 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     if(sight_condition == true //only apply flight rules to boids that are within the sight range, ...
         && dij <= close_radius && dij != 0. //... nearby excluding self ...
         && boids[j].getFlock() == getFlock()){ //... and in same flock
+
       if (dij < sep_radius) {    //separation component due to nearby ordinary boids
         sum_pos_boid_x += pj.getX();
         sum_pos_boid_y += pj.getY();
         ++nboids_in_sep;
-      }
+        }
 
-      sum_vel_x += vj.getXVel();
-      sum_vel_y += vj.getYVel(); 
+      sum_vel_x += vj.getX();
+      sum_vel_y += vj.getY(); 
 
       sum_pos_center_x += pj.getX();
       sum_pos_center_y += pj.getY();
@@ -257,10 +260,9 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
    
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
-    //Velocity pred_vk{predators[k].getVelocity()};
     Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
-    if(/*(ak.getDegrees() >= (360. - std::abs(agl.getDegrees() - sight_angle)) || ak.getDegrees() <= std::abs(agl.getDegrees() + sight_angle)) && */pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
+    if(pred_dik < 5*sep_radius) {  //effect of separation from predators is greater than that of separation from other boids
       sum_pos_pred_x += pred_pk.getX();
       sum_pos_pred_y += pred_pk.getY();
       ++npreds_in_sep;
@@ -269,7 +271,6 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
   }
 
 //velocity for ordinary boids
-//calculate velocity components and add (IMPLEMENT WITH DOUBLE*POSITION AND DOUBLE*VELOCITY OPERATORS)
 double sum_pos_sep_x = sum_pos_boid_x + sum_pos_pred_x;
 double sum_pos_sep_y = sum_pos_boid_y + sum_pos_pred_y;
 double nsep = nboids_in_sep + npreds_in_sep;
@@ -283,8 +284,8 @@ double align_vel_y{0.};
 double cohes_vel_x{0.};
 double cohes_vel_y{0.};
 if(nboids_nearby != 0) {  //avoid dividing by 0 if there are no close boids
-align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getXVel());
-align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getYVel());
+align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getX());
+align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getY());
 
 double near_centermass_x = sum_pos_center_x / (nboids_nearby);
 double near_centermass_y = sum_pos_center_y / (nboids_nearby);
@@ -316,7 +317,7 @@ try {
 }
 
 //update angle
-agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
+agl = Angle(360. * std::atan2(vel.getY(),vel.getX()) / (2*pi));
 
 return vel;
 
@@ -357,8 +358,8 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     sum_pos_center_x += pj.getX();
     sum_pos_center_y += pj.getY();
 
-    sum_vel_x += vj.getXVel();
-    sum_vel_y += vj.getYVel();
+    sum_vel_x += vj.getX();
+    sum_vel_y += vj.getY();
 
     ++nboids_nearby;
 
@@ -369,14 +370,13 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
-    //Velocity pred_vk{predators[k].getVelocity()};
     Angle pred_ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
     bool sight_condition; //selects predators in sight range
     if(agl.getDegrees() - sight_angle.getDegrees() < 0. || agl.getDegrees() + sight_angle.getDegrees() >= 360.) {  //if 0 degrees is in the sight range
       sight_condition = (pred_ak >= Angle(agl.getDegrees() - sight_angle.getDegrees()) || pred_ak <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     } else {
-      sight_condition = pred_ak >= Angle(agl.getDegrees() - sight_angle.getDegrees()) && pred_ak <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
+      sight_condition = pred_ak >= Angle(agl.getDegrees() - sight_angle.getDegrees()) && pred_ak <= Angle(agl.getDegrees() + sight_angle.getDegrees());
     }
 
     if(sight_condition == true && pred_dik < sep_radius) {
@@ -398,8 +398,8 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
   double cohes_vel_x{0.};
   double cohes_vel_y{0.};
   if(nboids_nearby != 0) {  //avoid dividing by 0 if there are no close boids
-    align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getXVel());
-    align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getYVel());
+    align_vel_x = align_factor * ((1/(nboids_nearby)) * sum_vel_x - vel.getX());
+    align_vel_y = align_factor * ((1/(nboids_nearby)) * sum_vel_y - vel.getY());
 
     double near_centermass_x = sum_pos_center_x / (nboids_nearby);
     double near_centermass_y = sum_pos_center_y / (nboids_nearby);
@@ -431,7 +431,7 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
   }
 
   //update angle
-  agl = Angle(360. * std::atan2(vel.getYVel(),vel.getXVel()) / (2*pi)); //implement constructor from radians
+  agl = Angle(360. * std::atan2(vel.getY(),vel.getX()) / (2*pi));
 
   return vel;
 

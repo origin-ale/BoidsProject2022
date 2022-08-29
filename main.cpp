@@ -144,7 +144,7 @@ int main()
     sf::Uint8 flock_color_b = (std::rand()%5) *40;
     flock_colors.push_back(sf::Color(flock_color_r, flock_color_g, flock_color_b));
     for(int j=0; j<flock_pops[i]; ++j){
-      double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
+      double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX;
       Angle spawn_angle{360. * std::rand()/RAND_MAX};
       Position spawn_pos{spawn_radius * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
       double spawn_speed = std::sqrt(1E-12 * MAX_SPEED2) * std::rand()/(RAND_MAX);
