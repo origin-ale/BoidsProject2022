@@ -1,10 +1,9 @@
 #include "boids.hpp"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include<iostream>
-#include<cmath>
+#include <iostream>
+#include <cmath>
 
-//WRITE A BUNCH MORE TESTS
 
 TEST_CASE("Testing position and velocity gets"){ //check a bunch of positions and velocities have correct get functions (getX, getY, getNorm2)
   Position pos1 = Position(2.,0.);  //second component = 0
@@ -62,7 +61,6 @@ TEST_CASE("Testing boids"){ //test boid constructors and gets work correctly
   CHECK(noargs_boid.getVelocity() == Velocity(0.,0.));
   CHECK(noargs_boid.getAngle() == Angle(0.));
 
-
   CHECK(onearg_boid.getPosition() == Position(1.,1.));
   CHECK(onearg_boid.getVelocity() == Velocity(0.,0.));
   CHECK(onearg_boid.getAngle() == Angle(0.));
@@ -70,7 +68,6 @@ TEST_CASE("Testing boids"){ //test boid constructors and gets work correctly
   CHECK(twoargs_boid.getPosition() == Position(2.,2.));
   CHECK(twoargs_boid.getVelocity() == Velocity(3.,3.));
   CHECK(twoargs_boid.getAngle() == Angle(0.));
-  
 
   CHECK(allargs_boid.getPosition() == Position(1.,1.));
   CHECK(allargs_boid.getVelocity() == Velocity(1.,1.));
@@ -159,6 +156,7 @@ TEST_CASE("Testing angles"){  //try getting boids to out-of-range angles and see
     CHECK(overrot_boid.getAngle().getSine() == doctest::Approx(1.));
     CHECK(overrot_boid.getAngle().getCosine() == doctest::Approx(0.));
   }
+
   SUBCASE("Testing infinite angles"){ //these should throw and get set to 0
     CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,0.), Angle(INFINITY)), E_InvalidAngle);
     CHECK_THROWS_AS(Boid(Position(0.,0.), Velocity(0.,0.), Angle(HUGE_VAL)), E_InvalidAngle);
@@ -173,6 +171,7 @@ TEST_CASE("Testing everything going wrong at once"){ //try having multi-exceptio
 
 TEST_CASE("Testing movement"){ //tests move and set functions
   Boid movement_boid = Boid();  //spawn still boid
+
   SUBCASE("Intended behavior"){
     movement_boid.moveBoid(0.1);  //try to move it
     CHECK(movement_boid.getPosition() == Position(0.,0.)); //should have stayed still
@@ -193,7 +192,6 @@ TEST_CASE("Testing movement"){ //tests move and set functions
     CHECK(movement_boid.getVelocity() == Velocity(1.,1.));  //check no side effect on velocity
     CHECK(movement_boid.getAngle() == Angle(75.));  //check no side effects on angle
     }
-
 
   SUBCASE("Setting members to nonfinites"){
     movement_boid = Boid(); //reset boid to default

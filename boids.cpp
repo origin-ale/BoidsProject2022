@@ -1,7 +1,7 @@
 #include "boids.hpp"
 
 
-Coords::Coords(double x_, double y_):x{x_}, y{y_} {} //abstract base class
+Coords::Coords(double x_coord, double y_coord):x{x_coord}, y{y_coord} {} //abstract base class
 
 double Coords::getX() const{
   return x;
@@ -18,7 +18,7 @@ double Coords::getNorm2() const{
 
 //-----Definitions for Position-----
 
-Position::Position(double x_, double y_) : Coords{x_, y_} {} // Position constructor
+Position::Position(double x_coord, double y_coord) : Coords{x_coord, y_coord} {} // Position constructor
 
 bool operator==(Position const& lhs, Position const& rhs){
   return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
@@ -31,7 +31,7 @@ Position operator-(Position const& lhs, Position const& rhs){
 
 //-----Definitions for Velocity-----
 
-Velocity::Velocity(double x_, double y_) : Coords{x_, y_} { // Velocity constructor
+Velocity::Velocity(double x_coord, double y_coord) : Coords{x_coord, y_coord} { // Velocity constructor
   if(getNorm2() > MAX_SPEED2 || !(std::isfinite(getNorm2()))) throw E_SpeedTooHigh{}; // check object isn't over speed limit when spawned. If it is, raise exception.
   assert(getNorm2() <= MAX_SPEED2); // terminate if somehow still greater
 }
