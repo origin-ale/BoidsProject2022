@@ -6,7 +6,7 @@ int main()
   time(&begin_time);
   tm* bgn_tm = localtime(&begin_time);
 
-  bool debug = true; //debug flag, skips parameter input
+  bool debug = false; //debug flag, skips parameter input
 
   int n_flocks;
   std::vector<int> flock_pops;
@@ -184,20 +184,19 @@ int main()
        window.close();
       }
     }
-    gSystem->ProcessEvents();
 
     std::vector<Boid> future_boids = boids;
     for(int i=0; i<n_boids; ++i) {
       future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
       future_boids[i].moveBoid(update_time_ms/1000.);
     }
-    boids = future_boids;
 
     std::vector<Boid> future_predators = predators;
     for(int i=0; i<n_preds; ++i) {
       future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
       future_predators[i].moveBoid(update_time_ms/1000.); //moveBoid takes seconds
     }
+    boids = future_boids;
     predators = future_predators;
 
     window.clear();
@@ -210,8 +209,6 @@ int main()
       updateGraphic(predators[i], pred_triangles[i], pred_sights[i], window, scale);
     }
     window.display();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms)); //moveBoid takes seconds
 
     if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
 
@@ -310,5 +307,6 @@ int main()
     }
 
     ++iteration;
+    std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms)); //moveBoid takes seconds
   }
 }

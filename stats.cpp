@@ -39,7 +39,7 @@ void fillDrawHisto(TH1D & histo, std::vector<double> const& data, Color_t const&
 
   double x_center = gPad->GetUxmax();
   double x_width = 0.4 * gPad->GetUxmax();
-  double y_center = (gPad->GetUymax()) * (1 - (statbox_offset * 0.3));
+  double y_center = (gPad->GetUymax()) * (1 - (statbox_offset * 0.21));
   double y_width = 0.1 * gPad->GetUymax();
 
   TPaveStats statbox = TPaveStats(x_center - x_width, y_center + y_width, x_center + y_width, y_center - y_width, "NB");

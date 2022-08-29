@@ -17,7 +17,6 @@ void initializeGraphic( Boid const& boid,
   boid_triangles.back().setRotation(90 - boid.getAngle().getDegrees());
 
   sight_arcs.push_back(sw::Ring(2. * boid_triangles.back().getRadius(), 0.));
-  // sight_arcs.push_back(sw::Ring(scale*150., 0.)); //real sight zone
   sight_arcs.back().setOrigin(sight_arcs.back().getRadius(), sight_arcs.back().getRadius());
   sight_arcs.back().setColor(arc_color);
   sight_arcs.back().setSectorOffset(-sight_angle/360.);
