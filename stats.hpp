@@ -5,16 +5,11 @@
 #include <TH1.h>
 #include <TCanvas.h>
 #include <TStyle.h>
+#include <TPaveStats.h>
+#include <TLatex.h>
 
+std::vector<double> getFlockDistances(std::vector<Boid> const&, int);
+std::vector<double> getPredFlockDistances(std::vector<Boid> const&, int, std::vector<Boid> const&);
+std::vector<double> getFlockSpeeds(std::vector<Boid> const&, int);
 
-struct Stats{
-  double mean;
-  double stdev;
-};
-
-std::vector<double> getDistances(std::vector<Boid> const&, std::vector<Boid> const&);
-std::vector<double> getSpeeds(std::vector<Boid> const&);
-
-Stats getStats(std::vector<double> const&);
-
-void makeHisto(std::vector<double> const&, const char*, const char*, double, TCanvas&, int);
+void fillDrawHisto(TH1D &, std::vector<double> const&, Color_t const&, float);

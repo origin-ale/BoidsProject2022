@@ -129,16 +129,16 @@ int main()
   TApplication app = TApplication("Window", (int*)0, (char**)nullptr);
   
   TCanvas histo_canvas{"canvas", "Boid statistics", - 1, 0, 600, 600};
-  histo_canvas.Divide(2,2);
 
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
   //spawn boids
+  std::vector<sf::Color> flock_colors;
   for(int i=0; i<n_flocks; ++i) {
     sf::Uint8 flock_color_r = (std::rand()%5) *40;
     sf::Uint8 flock_color_g = (std::rand()%5) *40;
     sf::Uint8 flock_color_b = (std::rand()%5) *40;
-    sf::Color flock_color{flock_color_r, flock_color_g, flock_color_b};
+    flock_colors.push_back(sf::Color(flock_color_r, flock_color_g, flock_color_b));
     for(int j=0; j<flock_pops[i]; ++j){
       double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
       Angle spawn_angle{360. * std::rand()/RAND_MAX};
@@ -148,7 +148,7 @@ int main()
       Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
       boids.push_back(Boid(spawn_pos,spawn_vel, Angle(0.), i));
 
-      initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, flock_color, sf::Color(flock_color_r, flock_color_g, flock_color_b, 90), window, scale);
+      initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, flock_colors.back(), sf::Color(flock_color_r, flock_color_g, flock_color_b, 90), window, scale);
     }
   }
   assert(boids.size() == static_cast<unsigned long>(n_boids));
@@ -179,6 +179,8 @@ int main()
     {
       if (event.type == sf::Event::Closed){
         window.close();
+        app.Delete();
+        return 0;
       }
     }
     gSystem->ProcessEvents();
@@ -211,28 +213,88 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));
 
     if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
-      std::vector<double> boid_distances = getDistances(boids, boids);
-      std::vector<double> boid_speeds = getSpeeds(boids);
-      std::vector<double> boidpred_distances = getDistances(boids, predators);
-      std::vector<double> pred_speeds = getSpeeds(predators);
 
-      Stats boid_dist_stats = getStats(boid_distances);
-      Stats boid_speed_stats = getStats(boid_speeds);
-      Stats boidpred_dist_stats = getStats(boidpred_distances);
-      Stats pred_speed_stats = getStats(pred_speeds);
+      histo_canvas.Clear();
+      histo_canvas.Divide(2,2);
 
-      std::cout << "---------- ITERATION " << iteration << " ----------\n"
-                << "Average boid - boid distance: " << boid_dist_stats.mean << "\t\tStandard deviation: " << boid_dist_stats.stdev << "\n"
-                << "Average boid speed: " << boid_speed_stats.mean << "\t\t\tStandard deviation: " << boid_speed_stats.stdev << "\n"
-                << "Average boid - predator distance: " << boidpred_dist_stats.mean << "\tStandard deviation: " << boid_dist_stats.stdev << "\n"
-                << "Average predator speed: " << pred_speed_stats.mean << "\t\t\tStandard deviation: " << pred_speed_stats.stdev << "\n\n"; 
-                
-      makeHisto(boid_distances, "Boid-boid distances", "Distance stats", std::sqrt(MAX_RADIUS2), histo_canvas, 1);
-      makeHisto(boid_speeds, "Boid speeds", "Speed stats", 0.01 * std::sqrt(MAX_SPEED2), histo_canvas, 2);
-      makeHisto(boidpred_distances, "Boid-predator distances", "Distance stats", std::sqrt(MAX_RADIUS2), histo_canvas, 3);
-      makeHisto(pred_speeds, "Predator speeds", "Speed stats", 0.01 * std::sqrt(MAX_SPEED2), histo_canvas, 4);
+      std::vector<std::vector<double>> flock_dists;
+      for(int i = 0; i < n_flocks; ++i) flock_dists.push_back(getFlockDistances(boids, i));
 
-      
+      std::vector<std::vector<double>> flock_speeds;
+      for(int i = 0; i < n_flocks; ++i) flock_speeds.push_back(getFlockSpeeds(boids, i));
+
+      std::vector<std::vector<double>> predflock_dists;
+      for(int i = 0; i < n_flocks; ++i) predflock_dists.push_back(getPredFlockDistances(boids, i, predators));
+
+      std::vector<double> pred_speeds = getFlockSpeeds(predators, 0);
+
+      histo_canvas.cd(1);
+      TH1D dist_scale_canvas = TH1D("", "", 50, 0., std::sqrt(MAX_RADIUS2));
+      dist_scale_canvas.SetMaximum((n_boids*n_boids)/(15*n_flocks)); //considering bins less important, as boids get close easily
+      gStyle->SetOptStat(0);
+      dist_scale_canvas.UseCurrentStyle();
+      dist_scale_canvas.DrawCopy("AXIS");
+      std::vector<TH1D> flock_dist_histos;
+      for(int i = 0; i < n_flocks; ++i){
+        std::string h_base_begin = "Flock ";
+        std::string h_flock_number = std::to_string(i+1); 
+        std::string h_base_end = " dists"; 
+        std::string h_name = h_base_begin + h_flock_number + h_base_end;
+        flock_dist_histos.push_back(TH1D(h_name.c_str(), "Flock distances", 50, 0., std::sqrt(MAX_RADIUS2)));
+        fillDrawHisto(flock_dist_histos[i], flock_dists[i], TColor::GetColor(flock_colors[i].r, flock_colors[i].g, flock_colors[i].b), i);
+      }
+
+      histo_canvas.cd(2);
+      TH1D speed_scale_canvas = TH1D("", "", 50, 0., 0.01 * std::sqrt(MAX_SPEED2));
+      gStyle->SetOptStat(0);
+      speed_scale_canvas.UseCurrentStyle();
+      speed_scale_canvas.SetMaximum(n_boids/n_flocks);
+      speed_scale_canvas.DrawCopy("AXIS");
+      std::vector<TH1D> flock_speed_histos;
+      for(int i = 0; i < n_flocks; ++i){
+        std::string h_base_begin = "Flock ";
+        std::string h_flock_number = std::to_string(i+1); 
+        std::string h_base_end = " speeds"; 
+        std::string h_name = h_base_begin + h_flock_number + h_base_end;
+        flock_speed_histos.push_back(TH1D(h_name.c_str(), "Flock speeds", 50, 0., 0.01 * std::sqrt(MAX_SPEED2)));
+        fillDrawHisto(flock_speed_histos[i], flock_speeds[i], TColor::GetColor(flock_colors[i].r, flock_colors[i].g, flock_colors[i].b),i);
+      }
+
+      histo_canvas.cd(3);
+      dist_scale_canvas.SetMaximum(n_boids/n_flocks);
+      gStyle->SetOptStat(0);
+      dist_scale_canvas.UseCurrentStyle();
+      dist_scale_canvas.DrawCopy("AXIS");
+      std::vector<TH1D> predflock_dist_histos;
+      for(int i = 0; i < n_flocks; ++i){
+        std::string h_base_begin = "Flock ";
+        std::string h_flock_number = std::to_string(i+1); 
+        std::string h_base_end = " pred dists"; 
+        std::string h_name = h_base_begin + h_flock_number + h_base_end;
+        predflock_dist_histos.push_back(TH1D(h_name.c_str(), "Flock distances from predators", 50, 0., std::sqrt(MAX_RADIUS2)));
+        fillDrawHisto(predflock_dist_histos[i], predflock_dists[i], TColor::GetColor(flock_colors[i].r, flock_colors[i].g, flock_colors[i].b), i);
+      }
+
+      histo_canvas.cd(4);
+      speed_scale_canvas.SetMaximum(n_preds);
+      gStyle->SetOptStat(0);
+      speed_scale_canvas.UseCurrentStyle();
+      speed_scale_canvas.DrawCopy("AXIS");
+      TH1D pred_speed_histo = TH1D("Pred speeds", "Predator speeds", 50, 0., 0.01 * std::sqrt(MAX_SPEED2));
+      fillDrawHisto(pred_speed_histo, pred_speeds, Color_t{2}, 0.f);
+
+      std::cout << "\n==================== ITERATION " << iteration << " ====================\n";
+      for(int i = 0; i<n_flocks; ++i){
+        std::cout << "Avg distance of flock " << i+1 << ": " << flock_dist_histos[i].GetMean() << "\t Std dev: " << flock_dist_histos[i].GetStdDev() << "\n";
+      }
+      for(int i = 0; i<n_flocks; ++i){
+        std::cout << "Avg speed of flock " << i+1 << ": " << flock_speed_histos[i].GetMean() << "\t Std dev: " << flock_speed_histos[i].GetStdDev() << "\n";
+      }
+      for(int i = 0; i<n_flocks; ++i){
+        std::cout << "Avg predator distance from flock " << i+1 << ": " << predflock_dist_histos[i].GetMean() << "\t Std dev: " << predflock_dist_histos[i].GetStdDev() << "\n";
+      }
+      std::cout << "Avg speed of predators: " << pred_speed_histo.GetMean() << "\t Std dev: " << pred_speed_histo.GetStdDev() << "\n";
+
       std::filesystem::create_directory("./Histograms");
       std::string histo_root = "Histograms/Histo";
       char begintime_string[50];
@@ -242,6 +304,7 @@ int main()
       std::string histo_format = ".pdf";
       std::string histo_name = histo_root + histo_time + histo_printing + histo_format;
       histo_canvas.Print(histo_name.c_str());
+
       ++printing;
     }
 
