@@ -2,7 +2,11 @@
 
 int main()
 {
-  bool debug = false; //debug flag, skips parameter input
+  time_t begin_time;
+  time(&begin_time);
+  tm* bgn_tm = localtime(&begin_time);
+
+  bool debug = true; //debug flag, skips parameter input
 
   int n_flocks;
   std::vector<int> flock_pops;
@@ -91,8 +95,8 @@ int main()
   assert(sight_angle<=180 && std::isfinite(sight_angle));
 
   //fixed parameter initialization
-  double window_x = 1500.;
-  double window_y = 1500.;
+  int window_x = 1500;
+  int window_y = 1500;
   double sim_radius = std::sqrt(MAX_RADIUS2);
   double scale = (std::min(window_x - 50. , window_y - 50.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window //replace numbers with something proportional to boid sprite size
   double graph_radius = scale * sim_radius;
@@ -100,7 +104,8 @@ int main()
   double sep_radius = 25.;
 
   //initialization of graphical features
-  sf::RenderWindow window(sf::VideoMode(window_x, window_y), "Boids Simulation"); //render window
+  sf::RenderWindow window(sf::VideoMode(window_x, window_y), "Boid Simulation"); //render window
+  window.setPosition(sf::Vector2i(1350, 0));
   sf::CircleShape sim_zone(graph_radius+20., 100.); //simulation area, the "sky"
   sim_zone.setPosition(-graph_radius-20., -graph_radius-20.); //put sim_zone center at coords (0,0)
   sf::RectangleShape background(sf::Vector2f(window_x, window_y)); //background rectangle
@@ -121,13 +126,18 @@ int main()
   std::vector<sw::Ring> boid_sights;
   std::vector<sw::Ring> pred_sights;
 
+  TApplication app = TApplication("Window", (int*)0, (char**)nullptr);
+  
+  TCanvas histo_canvas{"canvas", "Boid statistics", - 1, 0, 600, 600};
+  histo_canvas.Divide(2,2);
+
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
   //spawn boids
   for(int i=0; i<n_flocks; ++i) {
-    sf::Uint8 flock_color_r = std::rand()%150;
-    sf::Uint8 flock_color_g = std::rand()%150;
-    sf::Uint8 flock_color_b = std::rand()%150;
+    sf::Uint8 flock_color_r = (std::rand()%5) *40;
+    sf::Uint8 flock_color_g = (std::rand()%5) *40;
+    sf::Uint8 flock_color_b = (std::rand()%5) *40;
     sf::Color flock_color{flock_color_r, flock_color_g, flock_color_b};
     for(int j=0; j<flock_pops[i]; ++j){
       double spawn_radius = (0.5 * sim_radius) * std::rand()/RAND_MAX; //change names, these are polar coords
@@ -137,7 +147,6 @@ int main()
       Angle spawnspeed_angle{360. * std::rand()/RAND_MAX};
       Velocity spawn_vel{spawn_speed * spawn_angle.getCosine(), spawn_radius * spawn_angle.getSine()};
       boids.push_back(Boid(spawn_pos,spawn_vel, Angle(0.), i));
-      //std::cout << "Population of flock " << i+1 << ": " << j+1 << " //// Total population: " << boids.size() << "\n";
 
       initializeGraphic(boids[i], sf::CircleShape(9.,3.), boid_triangles, boid_sights, sight_angle, flock_color, sf::Color(flock_color_r, flock_color_g, flock_color_b, 90), window, scale);
     }
@@ -159,16 +168,20 @@ int main()
   assert(predators.size() == static_cast<unsigned long>(n_preds));
 
   int iteration = 0; //iteration counter
+  int printing = 1;
   int update_time_ms = 16; //time between updates, in milliseconds
   int print_sep_ms = 5000; //time between stat prints, in milliseconds
+
   while (window.isOpen())
   {
     sf::Event event;
     while (window.pollEvent(event))
     {
-      if (event.type == sf::Event::Closed)
+      if (event.type == sf::Event::Closed){
         window.close();
+      }
     }
+    gSystem->ProcessEvents();
 
     std::vector<Boid> future_boids = boids;
     for(int i=0; i<n_boids; ++i) {
@@ -187,22 +200,6 @@ int main()
     window.clear();
     window.draw(background);
     window.draw(sim_zone);
-    //TEST--------
-    // sf::CircleShape test_triangle{100.,3};
-    // sf::CircleShape marker{10.};
-
-    // test_triangle.setOrigin(100.,100.);
-    // test_triangle.setPosition(0.,0.);
-
-    // marker.setFillColor(sf::Color::Red);
-    // marker.setOrigin(10.,10.);
-    // marker.setPosition(test_triangle.getPosition());
-
-    // //std::cout<< test_triangle.getPosition().x << " " << test_triangle.getPosition().y;
-
-    // window.draw(test_triangle);
-    // window.draw(marker);
-    //-------------
     for(int i = 0; i < n_boids; ++i){
       updateGraphic(boids[i], boid_triangles[i], boid_sights[i], window, scale);
     }
@@ -210,73 +207,44 @@ int main()
       updateGraphic(predators[i], pred_triangles[i], pred_sights[i], window, scale);
     }
     window.display();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));
-    //std::cout << "pos: (" << boids[0].getPosition().getX() << ", " << boids[0].getPosition().getY() << "); vel: (" << boids[0].getVelocity().getXVel() << ", " << boids[0].getVelocity().getYVel() << ")\n";
 
     if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
-    //maybe implement in stats file?
+      std::vector<double> boid_distances = getDistances(boids, boids);
+      std::vector<double> boid_speeds = getSpeeds(boids);
+      std::vector<double> boidpred_distances = getDistances(boids, predators);
+      std::vector<double> pred_speeds = getSpeeds(predators);
 
-    //ordinary boids statistics
-    std::vector<double> b_distances;
-    std::vector<double> b_speeds;
-    for(int j = 0; j < n_boids; ++j){
-      for(int k = j+1; k < n_boids; ++k){
-        b_distances.push_back(sqrt((boids[j].getPosition() - boids[k].getPosition()).getNorm2()));
-      }
-      b_speeds.push_back(sqrt(boids[j].getVelocity().getNorm2())); }
-    
-    double b_dist_sum = std::accumulate(b_distances.begin(), b_distances.end(), 0.0); //ABSOLUTELY IMPLEMENT AS FUNCTIONS
-    double b_dist_mean = b_dist_sum / b_distances.size();
-    std::vector<double> b_dist_diff(b_distances.size());
-    std::transform(b_distances.begin(), b_distances.end(), b_dist_diff.begin(), [b_dist_mean](double x) { return x - b_dist_mean; });
-    double b_dist_sq_sum = std::inner_product(b_dist_diff.begin(), b_dist_diff.end(), b_dist_diff.begin(), 0.0);
-    double b_dist_stdev = std::sqrt(b_dist_sq_sum / b_distances.size());
+      Stats boid_dist_stats = getStats(boid_distances);
+      Stats boid_speed_stats = getStats(boid_speeds);
+      Stats boidpred_dist_stats = getStats(boidpred_distances);
+      Stats pred_speed_stats = getStats(pred_speeds);
 
-    double b_speed_sum = std::accumulate(b_speeds.begin(), b_speeds.end(), 0.0);
-    double b_speed_mean = b_speed_sum / b_speeds.size();
-    std::vector<double> b_speed_diff(b_speeds.size());
-    std::transform(b_speeds.begin(), b_speeds.end(), b_speed_diff.begin(), [b_speed_mean](double x) { return x - b_speed_mean; });
-    double b_speed_sq_sum = std::inner_product(b_speed_diff.begin(), b_speed_diff.end(), b_speed_diff.begin(), 0.0);
-    double b_speed_stdev = std::sqrt(b_speed_sq_sum / b_speeds.size());
+      std::cout << "---------- ITERATION " << iteration << " ----------\n"
+                << "Average boid - boid distance: " << boid_dist_stats.mean << "\t\tStandard deviation: " << boid_dist_stats.stdev << "\n"
+                << "Average boid speed: " << boid_speed_stats.mean << "\t\t\tStandard deviation: " << boid_speed_stats.stdev << "\n"
+                << "Average boid - predator distance: " << boidpred_dist_stats.mean << "\tStandard deviation: " << boid_dist_stats.stdev << "\n"
+                << "Average predator speed: " << pred_speed_stats.mean << "\t\t\tStandard deviation: " << pred_speed_stats.stdev << "\n\n"; 
+                
+      makeHisto(boid_distances, "Boid-boid distances", "Distance stats", std::sqrt(MAX_RADIUS2), histo_canvas, 1);
+      makeHisto(boid_speeds, "Boid speeds", "Speed stats", 0.01 * std::sqrt(MAX_SPEED2), histo_canvas, 2);
+      makeHisto(boidpred_distances, "Boid-predator distances", "Distance stats", std::sqrt(MAX_RADIUS2), histo_canvas, 3);
+      makeHisto(pred_speeds, "Predator speeds", "Speed stats", 0.01 * std::sqrt(MAX_SPEED2), histo_canvas, 4);
 
-    //predators statistics
-    std::vector<double> p_distances;
-    std::vector<double> p_speeds;
-    for(int j = 0; j < n_preds; ++j){
-      for(int k = 0; k < n_boids; ++k){
-        p_distances.push_back(sqrt((predators[j].getPosition() - boids[k].getPosition()).getNorm2()));
-      }
-      p_speeds.push_back(sqrt(predators[j].getVelocity().getNorm2())); }
-
-    double p_dist_sum = std::accumulate(p_distances.begin(), p_distances.end(), 0.0); //ABSOLUTELY IMPLEMENT AS FUNCTIONS
-    double p_dist_mean = p_dist_sum / p_distances.size();
-    std::vector<double> p_dist_diff(p_distances.size());
-    std::transform(p_distances.begin(), p_distances.end(), p_dist_diff.begin(), [p_dist_mean](double x) { return x - p_dist_mean; });
-    double p_dist_sq_sum = std::inner_product(p_dist_diff.begin(), p_dist_diff.end(), p_dist_diff.begin(), 0.0);
-    double p_dist_stdev = std::sqrt(p_dist_sq_sum / p_distances.size());
-    
-    double p_speed_sum = std::accumulate(p_speeds.begin(), p_speeds.end(), 0.0);
-    double p_speed_mean = p_speed_sum / p_speeds.size();
-    std::vector<double> p_speed_diff(p_speeds.size());
-    std::transform(p_speeds.begin(), p_speeds.end(), p_speed_diff.begin(), [p_speed_mean](double x) { return x - p_speed_mean; });
-    double p_speed_sq_sum = std::inner_product(p_speed_diff.begin(), p_speed_diff.end(), p_speed_diff.begin(), 0.0);
-    double p_speed_stdev = std::sqrt(p_speed_sq_sum / p_speeds.size());
-
-    std::cout << "---------- ITERATION " << iteration << " ----------\n"
-              << "Average distance between boids: " << b_dist_mean << "\tStandard deviation: " << b_dist_stdev << "\n" //completely messed up
-              << "Average speed of boids: " << b_speed_mean << "\tStandard deviation: " << b_speed_stdev << "\n\n"
-              << "Average distance between boids and predators: " << p_dist_mean << "\tStandard deviation: " << p_dist_stdev << "\n"
-              << "Average speed of predators: " << p_speed_mean << "\tStandard deviation: " << p_speed_stdev << "\n\n"; 
-    // std::cout << "BOID POSITIONS:\n";
-    // for(auto item: boids){
-    //   std::cout << item.getPosition().getX() << " , " << item.getPosition().getY() << "\n";
-    // }
-    
-    // std::cout << "DISTANCES:\n";
-    // for(auto item: distances){
-    //   std::cout << item << "\n";
-    // }
+      
+      std::filesystem::create_directory("./Histograms");
+      std::string histo_root = "Histograms/Histo";
+      char begintime_string[50];
+      strftime(begintime_string, 25, "%y%m%d_%H%M%S_", bgn_tm);
+      std::string histo_time = begintime_string;
+      std::string histo_printing = std::to_string(printing);
+      std::string histo_format = ".pdf";
+      std::string histo_name = histo_root + histo_time + histo_printing + histo_format;
+      histo_canvas.Print(histo_name.c_str());
+      ++printing;
     }
-  ++ iteration;
+
+    ++iteration;
   }
 }
