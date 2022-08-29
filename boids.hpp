@@ -94,8 +94,8 @@ class Boid {  // each boid is one of these
   int getFlock() const;
 
   Position moveBoid(double);  //moves boid by a step in time
-  Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, double = 180.);  //applies flight rules to ordinary boid
-  Velocity updatePredatorVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, double = 180.);  //applies flight rules to predator
+  Velocity updateBoidVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, Angle = Angle(180.));  //applies flight rules to ordinary boid
+  Velocity updatePredatorVelocity(std::vector<Boid> const, std::vector<Boid> const, double, double, double, double, double, Angle = Angle(180.));  //applies flight rules to predator
 
   Position setPosition(Position const&);
   Velocity setVelocity(Velocity const&);

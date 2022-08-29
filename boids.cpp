@@ -199,7 +199,7 @@ Position Boid::moveBoid(double delta_t){
 }
 
 
-Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, double sight_angle){
+Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boid> const predators, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, Angle sight_angle){
 
   //initialization of component wise sums of members of nearby boids OTHER THAN SELF
   double nboids_nearby{0.};
@@ -227,10 +227,10 @@ Velocity Boid::updateBoidVelocity(std::vector<Boid> const boids, std::vector<Boi
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
     bool sight_condition; //selects boids in sight range
-    if(agl.getDegrees() - sight_angle < 0. || agl.getDegrees() + sight_angle >= 360.) {  //if 0 degrees is in the sight range
-      sight_condition = (aj.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() || aj.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare nel caso in cui 0 sia nel range
+    if(agl.getDegrees() - sight_angle.getDegrees() < 0. || agl.getDegrees() + sight_angle.getDegrees() >= 360.) {  //if 0 degrees is in the sight range
+      sight_condition = (aj >= Angle(agl.getDegrees() - sight_angle.getDegrees()) || aj <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     } else {
-      sight_condition = (aj.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() && aj.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare quando 0 non è nel range
+      sight_condition = (aj >= Angle(agl.getDegrees() - sight_angle.getDegrees()) && aj <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     }
 
     if(sight_condition == true //only apply flight rules to boids that are within the sight range, ...
@@ -324,7 +324,7 @@ return vel;
 
 
 
-Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, double sight_angle) {
+Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::vector<Boid> const boids, double close_radius, double sep_radius, double sep_factor, double align_factor, double cohes_factor, Angle sight_angle) {
 
   double sum_vel_x{0.};
   double sum_vel_y{0.}; //used in alignment with ordinary boids
@@ -346,10 +346,10 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Angle aj{360. * std::atan2(pj.getY()-pos.getY(), pj.getX()-pos.getX())/(2 * pi)};
 
     bool sight_condition; //selects boids in sight range
-    if(agl.getDegrees() - sight_angle < 0. || agl.getDegrees() + sight_angle >= 360.) {  //if 0 degrees is in the sight range
-      sight_condition = (aj.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() || aj.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare nel caso in cui 0 sia nel range
+    if(agl.getDegrees() - sight_angle.getDegrees() < 0. || agl.getDegrees() + sight_angle.getDegrees() >= 360.) {  //if 0 degrees is in the sight range
+      sight_condition = (aj >= Angle(agl.getDegrees() - sight_angle.getDegrees()) || aj <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     } else {
-      sight_condition = (aj.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() && aj.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare quando 0 non è nel range
+      sight_condition = (aj >= Angle(agl.getDegrees() - sight_angle.getDegrees()) && aj <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     }
 
     if(sight_condition == true && dij <= close_radius) {    //only apply flight rules to close boids
@@ -370,13 +370,13 @@ Velocity Boid::updatePredatorVelocity(std::vector<Boid> const predators, std::ve
     Position pred_pk{predators[k].getPosition()};
     double pred_dik{sqrt((pos-pred_pk).getNorm2())};
     //Velocity pred_vk{predators[k].getVelocity()};
-    Angle ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
+    Angle pred_ak{360. * std::atan2(pred_pk.getY()-pos.getY(), pred_pk.getX()-pos.getX())/(2 * pi)};
 
     bool sight_condition; //selects predators in sight range
-    if(agl.getDegrees() - sight_angle < 0. || agl.getDegrees() + sight_angle >= 360.) {  //if 0 degrees is in the sight range
-      sight_condition = (ak.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() || ak.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare nel caso in cui 0 sia nel range
+    if(agl.getDegrees() - sight_angle.getDegrees() < 0. || agl.getDegrees() + sight_angle.getDegrees() >= 360.) {  //if 0 degrees is in the sight range
+      sight_condition = (pred_ak >= Angle(agl.getDegrees() - sight_angle.getDegrees()) || pred_ak <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     } else {
-      sight_condition = (ak.getDegrees() >= Angle(agl.getDegrees() - sight_angle).getDegrees() && ak.getDegrees() <= Angle(agl.getDegrees() + sight_angle).getDegrees()); //dovrebbe funzionare quando 0 non è nel range
+      sight_condition = pred_ak >= Angle(agl.getDegrees() - sight_angle.getDegrees()) && pred_ak <= Angle(agl.getDegrees() + sight_angle.getDegrees()));
     }
 
     if(sight_condition == true && pred_dik < sep_radius) {

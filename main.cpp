@@ -15,7 +15,7 @@ int main()
   double align_factor;
   double cohes_factor;
   int n_preds;
-  double sight_angle;
+  double sight_angle_degrees;
 
   if(debug){
     n_flocks = 3;
@@ -24,7 +24,7 @@ int main()
     align_factor = 0.1;
     cohes_factor = 0.3;
     n_preds = 2;
-    sight_angle = 60.;
+    sight_angle_degrees = 60.;
   }
 
   else
@@ -77,14 +77,15 @@ int main()
     }
 
     std::cout << "Enter sight angle: "; 
-    std::cin >> sight_angle;
-    while(sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) {
+    std::cin >> sight_angle_degrees;
+    while(sight_angle_degrees<0 || sight_angle_degrees>180 || !(std::isfinite(sight_angle_degrees))) {
       std::cout << "Invalid sight angle entered. Please enter again: ";  
       std::cin >> sight_angle; 
     }
   }
 
   n_boids = std::accumulate(flock_pops.begin(), flock_pops.end(), 0);
+  Angle sight_angle = Angle(sight_angle_degrees);
 
   //parameter assertions
   assert(n_boids>=0 && std::isfinite(n_boids));
@@ -92,7 +93,7 @@ int main()
   assert(align_factor>=0 && align_factor < 1 && std::isfinite(align_factor));
   assert(cohes_factor>=0 && std::isfinite(cohes_factor));
   assert(n_preds>=0 && std::isfinite(n_preds));
-  assert(sight_angle<=180 && std::isfinite(sight_angle));
+  assert(sight_angle_degrees<=180 && std::isfinite(sight_angle_degrees));
 
   //fixed parameter initialization
   int window_x = 1500;

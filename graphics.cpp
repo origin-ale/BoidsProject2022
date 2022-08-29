@@ -4,7 +4,7 @@ void initializeGraphic( Boid const& boid,
                         sf::CircleShape const& shape, 
                         std::vector<sf::CircleShape>& boid_triangles, 
                         std::vector<sw::Ring>& sight_arcs, 
-                        double sight_angle,
+                        Angle const& sight_angle,
                         sf::Color const& boid_color, 
                         sf::Color const& arc_color, 
                         sf::RenderWindow& target_window, 
@@ -14,16 +14,16 @@ void initializeGraphic( Boid const& boid,
   boid_triangles.back().setOrigin(shape.getRadius(), shape.getRadius());
   boid_triangles.back().setFillColor(boid_color);
   boid_triangles.back().setPosition(scale * boid.getPosition().getX(), - scale * boid.getPosition().getY()); //Y axis points downwards in SFML
-  boid_triangles.back().setRotation(90 - boid.getAngle().getDegrees());
+  boid_triangles.back().setRotation(90. - boid.getAngle().getDegrees());
 
   sight_arcs.push_back(sw::Ring(2. * boid_triangles.back().getRadius(), 0.));
   // sight_arcs.push_back(sw::Ring(scale*150., 0.)); //real sight zone
   sight_arcs.back().setOrigin(sight_arcs.back().getRadius(), sight_arcs.back().getRadius());
   sight_arcs.back().setColor(arc_color);
-  sight_arcs.back().setSectorOffset(-sight_angle/360.);
-  sight_arcs.back().setSectorSize(sight_angle/180.);
+  sight_arcs.back().setSectorOffset(-sight_angle.getDegrees()/360.);
+  sight_arcs.back().setSectorSize(sight_angle.getDegrees()/180.);
   sight_arcs.back().setPosition(scale * boid.getPosition().getX(), - scale * boid.getPosition().getY());
-  sight_arcs.back().setRotation(90 - boid.getAngle().getDegrees());
+  sight_arcs.back().setRotation(90. - boid.getAngle().getDegrees());
 
   target_window.draw(sight_arcs.back());
   target_window.draw(boid_triangles.back());
