@@ -34,9 +34,9 @@ target_link_libraries(BoidsExecutable PRIVATE ROOT::Core ROOT::Hist ROOT::HistPa
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile chain.t, da produrre a partire dai sorgenti indicati
-  add_executable(BoidsTest.t boids.test.cpp boids.cpp graphics.cpp SelbaWard/Ring.cpp stats.cpp)
-  target_link_libraries(BoidsTest.t PRIVATE sfml-graphics)
-  target_link_libraries(BoidsTest.t PRIVATE ROOT::Core ROOT::Hist ROOT::HistPainter)
+  add_executable(BoidsTest.t boids.test.cpp boids.cpp)
+  add_executable(StatsTest.t stats.test.cpp boids.cpp stats.cpp)
+  target_link_libraries(StatsTest.t PRIVATE ROOT::Core ROOT::Hist ROOT::HistPainter)
   # aggiungi l'eseguibile chain.t alla lista dei test, con nome chain.t
   add_test(NAME BoidsTest.t COMMAND BoidsTest.t)
 
