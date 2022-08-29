@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <cmath>
 #include "boids.hpp"
 #include "SelbaWard/Common.hpp"
 #include "SelbaWard/Ring.hpp"

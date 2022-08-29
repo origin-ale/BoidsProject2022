@@ -77,7 +77,7 @@ int main()
     }
 
     std::cout << "Enter sight angle: "; 
-    std::cin >> sight_angle;
+    std::cin >> sight_angle; //recommended values around 60 (120 degrees total)
     while(sight_angle<0 || sight_angle>180 || !(std::isfinite(sight_angle))) {
       std::cout << "Invalid sight angle entered. Please enter again: ";  
       std::cin >> sight_angle; 
@@ -98,9 +98,12 @@ int main()
   int window_x = 1500;
   int window_y = 1500;
   double sim_radius = std::sqrt(MAX_RADIUS2);
-  double scale = (std::min(window_x - 50. , window_y - 50.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window //replace numbers with something proportional to boid sprite size
+  double scale = (std::max(std::min(window_x - 50. , window_y - 50.), 1.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window
+  
+  assert(scale > 0 && std::isfinite(scale));
+
   double graph_radius = scale * sim_radius;
-  double close_radius = 150.;
+  double close_radius = 300.;
   double sep_radius = 25.;
 
   //initialization of graphical features
@@ -188,14 +191,14 @@ int main()
     std::vector<Boid> future_boids = boids;
     for(int i=0; i<n_boids; ++i) {
       future_boids[i].updateBoidVelocity(boids, predators, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
-      future_boids[i].moveBoid(TIME_STEP);
+      future_boids[i].moveBoid(update_time_ms/1000.);
     }
     boids = future_boids;
 
     std::vector<Boid> future_predators = predators;
     for(int i=0; i<n_preds; ++i) {
       future_predators[i].updatePredatorVelocity(predators, boids, close_radius, sep_radius, sep_factor, align_factor, cohes_factor, sight_angle);
-      future_predators[i].moveBoid(TIME_STEP);
+      future_predators[i].moveBoid(update_time_ms/1000.); //moveBoid takes seconds
     }
     predators = future_predators;
 
@@ -210,7 +213,7 @@ int main()
     }
     window.display();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(update_time_ms)); //moveBoid takes seconds
 
     if(iteration % (print_sep_ms / update_time_ms) == 0){ //print roughly every print_sep_ms milliseconds
 
