@@ -39,44 +39,38 @@
 #define SELBAWARD_NOEXCEPT noexcept
 #endif
 
-namespace selbaward
-{
+namespace selbaward {
 
-class Exception : public std::exception
-{
-public:
-	Exception(const std::string& errorMessage = "Unknown error.") :
-		m_errorMessage("[Selba Ward] " + errorMessage)
-	{
-	}
-	virtual const char* what() const SELBAWARD_NOEXCEPT override
-	{
-		return m_errorMessage.c_str();
-	}
+class Exception : public std::exception {
+ public:
+  Exception(const std::string& errorMessage = "Unknown error.")
+      : m_errorMessage("[Selba Ward] " + errorMessage) {}
+  virtual const char* what() const SELBAWARD_NOEXCEPT override {
+    return m_errorMessage.c_str();
+  }
 
-private:
-	std::string m_errorMessage;
+ private:
+  std::string m_errorMessage;
 };
 
-} // namespace selbaward
+}  // namespace selbaward
 
 #ifndef SELBAWARD_NO_NAMESPACE_SHORTCUT
-namespace sw = selbaward; // create shortcut namespace
-#endif // SELBAWARD_NO_NAMESPACE_SHORTCUT
+namespace sw = selbaward;  // create shortcut namespace
+#endif                     // SELBAWARD_NO_NAMESPACE_SHORTCUT
 
-#include <vector>
-
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Graphics/Vertex.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/Graphics/RenderStates.hpp>
+#include <vector>
 
 #if (SFML_VERSION_MAJOR == 2)
-	#if (SFML_VERSION_MINOR < 4)
-		#define USE_SFML_PRE_2_4
-	#endif
+#if (SFML_VERSION_MINOR < 4)
+#define USE_SFML_PRE_2_4
+#endif
 #endif
 
-#endif // SELBAWARD_COMMON_HPP
+#endif  // SELBAWARD_COMMON_HPP
