@@ -99,12 +99,16 @@ int main()
   int window_y = 1500;
   double sim_radius = std::sqrt(MAX_RADIUS2);
   double scale = (std::max(std::min(window_x - 50. , window_y - 50.), 1.) / sim_radius) /2; //coord-to-pixel scaling factor, such that the sim zone fits the window
-  
+
   assert(scale > 0 && std::isfinite(scale));
 
   double graph_radius = scale * sim_radius;
   double close_radius = 300.;
   double sep_radius = 25.;
+
+  TApplication app = TApplication("Window", (int*)0, (char**)nullptr);
+  
+  TCanvas histo_canvas{"canvas", "Boid statistics", - 1, 0, 600, 600};
 
   //initialization of graphical features
   sf::RenderWindow window(sf::VideoMode(window_x, window_y), "Boid Simulation"); //render window
@@ -128,10 +132,6 @@ int main()
   std::vector<sf::CircleShape> pred_triangles;
   std::vector<sw::Ring> boid_sights;
   std::vector<sw::Ring> pred_sights;
-
-  TApplication app = TApplication("Window", (int*)0, (char**)nullptr);
-  
-  TCanvas histo_canvas{"canvas", "Boid statistics", - 1, 0, 600, 600};
 
   std::srand(static_cast<unsigned int>(std::time(nullptr))); //seed RNG with system time
 
@@ -181,9 +181,7 @@ int main()
     while (window.pollEvent(event))
     {
       if (event.type == sf::Event::Closed){
-        window.close();
-        app.Delete();
-        return 0;
+       window.close();
       }
     }
     gSystem->ProcessEvents();
