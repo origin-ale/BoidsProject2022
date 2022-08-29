@@ -36,8 +36,6 @@ class Coords {  //abstract base class for x and y coordinates
 };
 
 class Position : public Coords { //derived class to handle object positions
-  double x=0.;
-  double y=0.;
 
   public:
   explicit Position(double, double);  //simple constructor, takes x and y position coords
@@ -48,8 +46,6 @@ bool operator==(Position const&, Position const&);
 Position operator-(Position const&, Position const&);
 
 class Velocity : public Coords { //derived class to handle object velocities
-  double x=0.;
-  double y=0.;
 
   public:
   explicit Velocity(double, double); //simple constructor, takes x and y velocities
