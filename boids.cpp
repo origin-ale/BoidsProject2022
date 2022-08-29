@@ -15,19 +15,26 @@ double Coords::getNorm2() const{
   return x * x + y * y;
 }
 
+bool operator==(Coords const& lhs, Coords const& rhs){
+  return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
+}
+
+Coords operator+=(Coords& lhs, Coords const& rhs){              
+    return lhs = Coords(lhs.getX() + rhs.getX(), lhs.getY() + rhs.getY());
+}
+
+Coords operator+(Coords const& lhs, Coords const& rhs){ 
+    Coords temp = lhs;             
+    return temp += rhs;
+}
+
+Coords operator-(Coords const& lhs, Coords const& rhs){
+  return Position(lhs.getX()-rhs.getX(), lhs.getY()-rhs.getY());
+}
 
 //-----Definitions for Position-----
 
 Position::Position(double x_, double y_) : Coords{x_, y_} {} // Position constructor
-
-bool operator==(Position const& lhs, Position const& rhs){
-  return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
-}
-
-Position operator-(Position const& lhs, Position const& rhs){
-  return Position(lhs.getX()-rhs.getX(), lhs.getY()-rhs.getY());
-}
-
 
 //-----Definitions for Velocity-----
 
@@ -35,20 +42,6 @@ Velocity::Velocity(double x_, double y_) : Coords{x_, y_} { // Velocity construc
   if(getNorm2() > MAX_SPEED2 || !(std::isfinite(getNorm2()))) throw E_SpeedTooHigh{}; // check object isn't over speed limit when spawned. If it is, raise exception.
   assert(getNorm2() <= MAX_SPEED2); // terminate if somehow still greater
 }
-
-bool operator==(Velocity const& lhs, Velocity const& rhs){
-  return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
-}
-
-Velocity operator+=(Velocity& lhs, Velocity const& rhs){              
-    return lhs = Velocity(lhs.getX() + rhs.getX(), lhs.getY() + rhs.getY());
-}
-
-Velocity operator+(Velocity const& lhs, Velocity const& rhs){ 
-    Velocity temp = lhs;             
-    return temp += rhs;
-}
-
 
 //-----Definitions for Angle-----
 

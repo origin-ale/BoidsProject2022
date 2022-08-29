@@ -35,6 +35,10 @@ class Coords {  //abstract base class for x and y coordinates
   virtual double getNorm2() const; //returns norm squared
 };
 
+bool operator==(Coords const&, Coords const&);
+Coords operator-(Coords const&, Coords const&);
+Coords operator+(Coords const&, Coords const&);
+
 class Position : public Coords { //derived class to handle object positions
 
   public:
@@ -42,8 +46,6 @@ class Position : public Coords { //derived class to handle object positions
 
 };
 
-bool operator==(Position const&, Position const&);
-Position operator-(Position const&, Position const&);
 
 class Velocity : public Coords { //derived class to handle object velocities
 
@@ -52,8 +54,7 @@ class Velocity : public Coords { //derived class to handle object velocities
 
 };
 
-bool operator==(Velocity const&, Velocity const&);
-Velocity operator+(Velocity const&, Velocity const&);
+
 
 class Angle{  //class to handle angles both in degrees (SFML) and radians (C++ trig functions)
   private:
