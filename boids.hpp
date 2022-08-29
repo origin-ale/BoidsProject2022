@@ -18,7 +18,6 @@ struct E_SpeedTooHigh{};  // exception thrown for speeds higher than MAX_SPEED
 
 struct E_InvalidAngle{}; //exception thrown for angles lower than 0 or higher than 360 degrees. Not thrown immediately if invalid angle is put into constructor, only if it somehow manages to not get converted into 0 to 360 degs (INFINITY, HUGE_VAL, NaN)
 
-constexpr double TIME_STEP = 1./60.; //default time step for evolution (60 fps)
 struct E_InvalidMovementTime{}; //exception thrown for overly long times passed to moveBoid
 
 //----------CLASS DEFINITIONS AND MEMBER DECLARATIONS----------
