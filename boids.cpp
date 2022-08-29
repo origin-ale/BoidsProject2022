@@ -19,11 +19,10 @@ bool operator==(Coords const& lhs, Coords const& rhs){
   return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY();
 }
 
-<<<<<<< HEAD
 //-----Definitions for Position-----
 
 Position::Position(double x_coord, double y_coord) : Coords{x_coord, y_coord} {} // Position constructor
-=======
+
 Coords operator+=(Coords& lhs, Coords const& rhs){              
     return lhs = Coords(lhs.getX() + rhs.getX(), lhs.getY() + rhs.getY());
 }
